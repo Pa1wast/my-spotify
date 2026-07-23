@@ -54,12 +54,19 @@ npm run db:push
 ### 4. Auth0 (free)
 
 1. Create a free Auth0 account and tenant
-2. Create a **Regular Web Application**
-3. Set Allowed Callback URLs: `http://localhost:3000/auth/callback`
-4. Set Allowed Logout URLs: `http://localhost:3000`
-5. Copy domain, client ID, and client secret into `.env`
+2. Create a **Regular Web Application** (Token Endpoint Auth Method: `client_secret_post`)
+3. In Application → Settings, configure:
 
-For production on Vercel, also add your Vercel URL to Auth0 callback/logout URLs and set `APP_BASE_URL` to that URL.
+| Field | Local value |
+|-------|-------------|
+| Allowed Callback URLs | `http://localhost:3000/auth/callback` |
+| Allowed Logout URLs | `http://localhost:3000` |
+| Allowed Web Origins | `http://localhost:3000` |
+
+4. Copy domain, client ID, and client secret into `.env` (see `.env.example`)
+5. Generate `AUTH0_SECRET` with `openssl rand -hex 32` if needed
+
+For production on Vercel, add your deployment URL with the same paths (e.g. `https://your-app.vercel.app/auth/callback`) and set `APP_BASE_URL` to that URL.
 
 ### 5. Run locally
 

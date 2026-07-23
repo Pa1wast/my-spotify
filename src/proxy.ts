@@ -1,7 +1,9 @@
 import { auth0 } from "@/shared/lib/auth0";
 
 export async function proxy(request: Request) {
-  return await auth0.middleware(request);
+  const authResponse = await auth0.middleware(request);
+
+  return authResponse;
 }
 
 export const config = {

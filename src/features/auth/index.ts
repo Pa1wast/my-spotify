@@ -1,1 +1,2 @@
-export { AuthButtons } from "./components/auth-buttons";
+export { AuthSection } from "./components/auth-section";
+export { UserProfilePanel } from "./components/user-profile-panel";
