@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Spotify
 
-## Getting Started
+A full-stack Next.js app for exploring and managing your music. The scaffold is ready for Auth0, Neon PostgreSQL, and future Spotify Web API integration.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router (Server Actions + API routes)
+- TypeScript, Tailwind CSS v4, shadcn/ui
+- Prisma ORM + Neon PostgreSQL (free tier)
+- Auth0 authentication (free tier)
+- NyxUI music player component
+- Named theme system (`ember` is the default theme)
+
+## Getting started
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Required for local auth/database:
+
+- `DATABASE_URL` — Neon pooled connection string
+- `DIRECT_URL` — Neon direct connection string (for migrations)
+- `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`
+- `APP_BASE_URL` — `http://localhost:3000` locally
+
+Generate `AUTH0_SECRET`:
+
+```bash
+openssl rand -hex 32
+```
+
+### 3. Neon (free)
+
+1. Create a free project at [neon.tech](https://neon.tech)
+2. Copy the pooled and direct PostgreSQL connection strings
+3. Paste them into `.env` as `DATABASE_URL` and `DIRECT_URL`
+4. Apply the schema:
+
+```bash
+npm run db:push
+```
+
+### 4. Auth0 (free)
+
+1. Create a free Auth0 account and tenant
+2. Create a **Regular Web Application**
+3. Set Allowed Callback URLs: `http://localhost:3000/auth/callback`
+4. Set Allowed Logout URLs: `http://localhost:3000`
+5. Copy domain, client ID, and client secret into `.env`
+
+For production on Vercel, also add your Vercel URL to Auth0 callback/logout URLs and set `APP_BASE_URL` to that URL.
+
+### 5. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                 # App Router routes (thin wrappers)
+├── features/            # Feature modules (auth, player, home, ...)
+├── shared/              # Shared UI, lib, constants, types
+├── layouts/
+└── providers/           # Theme, React Query, Auth0 providers
+```
 
-## Learn More
+## Deployment (Vercel Hobby — free)
 
-To learn more about Next.js, take a look at the following resources:
+1. Push this repo to GitHub
+2. Import the repo in [Vercel](https://vercel.com)
+3. Add the same environment variables from `.env.example`
+4. Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Prisma client generation runs automatically via `postinstall` and `build`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Spotify Web API (later)
 
-## Deploy on Vercel
+When you have Spotify API credentials, add them to `.env` and build services under `features/` for library sync and playback metadata. The NyxUI music player is already wired on the home page as a UI placeholder.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Agent skills & rules
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This repo includes Cursor rules and skills adapted from the Edinburgh Arrivals TMS frontend, plus Prisma and Auth0 agent skills under `.agents/skills/`.

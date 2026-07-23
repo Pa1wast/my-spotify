@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+
+API Integration Rules:
+
+1. Same-app data access:
+   - Use Prisma via `shared/lib/prisma.ts`
+   - Prefer Server Actions in `features/[feature]/api/`
+   - Use Route Handlers in `app/api/` when needed (webhooks, external callbacks)
+
+2. External API calls (e.g. Spotify Web API):
+   - Create services in `features/[feature]/services/` or `shared/services/`
+   - Use React Query hooks in `features/[feature]/hooks/` for client-side fetches
+   - Never call APIs directly inside components
+
+3. Handle:
+   - Loading states
+   - Errors
+   - Success responses
+
+4. Use TypeScript interfaces for API responses and DTOs.
+
+5. Use Zod schemas in `features/[feature]/schemas/` for validation.
+
+6. Use environment variables for secrets and external service URLs.
+
+7. Use Axios only for external HTTP APIs, not for same-app database access.

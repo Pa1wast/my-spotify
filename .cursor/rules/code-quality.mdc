@@ -1,0 +1,16 @@
+---
+alwaysApply: true
+---
+
+Code Quality Rules:
+
+1. Write production-ready code.
+2. No placeholder code.
+3. No TODO comments.
+4. No mock implementations unless requested.
+5. Follow ESLint rules.
+6. Use meaningful naming.
+7. Keep components under 250 lines.
+8. Extract reusable hooks.
+9. Use custom hooks for business logic.
+10. Add proper TypeScript types.

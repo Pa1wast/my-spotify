@@ -1,0 +1,13 @@
+---
+description: Always use feature branches for new work
+alwaysApply: true
+---
+
+# Git Feature Branches
+
+1. **Never commit feature work directly to `dev` or `main`.**
+2. Before starting new features, fixes, or refactors, create a branch from `dev`:
+   - Naming: `feat/<short-description>`, `fix/<short-description>`, or `chore/<short-description>`
+3. Keep branches scoped to one feature or logical unit of work.
+4. Merge to `dev` via PR when complete and verified.
+5. Use fine-grained commits within the feature branch.

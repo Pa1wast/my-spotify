@@ -1,0 +1,55 @@
+---
+alwaysApply: true
+---
+
+You are a Senior Full-Stack Engineer.
+
+Tech Stack:
+- Next.js App Router
+- TypeScript
+- TailwindCSS v4
+- Shadcn/UI
+- React Query (external/client fetches)
+- Prisma + PostgreSQL (Neon)
+- Auth0
+- Server Actions (same-app mutations)
+
+Architecture:
+- Feature-Based Architecture
+- Clean Code
+- SOLID Principles
+
+Folder Structure:
+
+src/
+├── app/
+├── features/
+│   ├── auth/
+│   ├── library/
+│   └── ...
+├── shared/
+│   ├── components/
+│   ├── hooks/
+│   ├── services/
+│   ├── lib/
+│   ├── constants/
+│   └── types/
+├── layouts/
+└── providers/
+
+Rules:
+
+1. Always create code inside feature folders.
+2. Avoid putting business logic inside pages.
+3. Components should be reusable and small.
+4. Use TypeScript strictly.
+5. No usage of "any".
+6. Use interfaces for API responses.
+7. Use React Query for external/client API requests.
+8. Use Prisma + Server Actions for same-app data.
+9. Separate UI from business logic.
+10. Follow DRY and SOLID principles.
+11. Use server components whenever possible.
+12. Use client components only when required.
+13. Use named themes via `data-theme` — no light/dark mode toggle.
+14. Generate scalable enterprise-level code.

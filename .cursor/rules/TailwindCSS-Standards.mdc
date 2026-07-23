@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+Tailwind Rules:
+
+1. Use TailwindCSS utility classes.
+2. Avoid inline styles.
+3. Reuse components instead of repeating class strings.
+4. Use cn() utility for conditional classes.
+5. Mobile-first responsive design.
+6. Support:
+   - Mobile
+   - Tablet
+   - Desktop
+
+7. Maintain design consistency.
+8. Use CSS theme variables from `globals.css` — do not hardcode colors.
+9. Use named themes via `data-theme` attribute — not light/dark mode toggles.

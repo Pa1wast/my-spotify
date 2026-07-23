@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+
+Next.js Rules:
+
+1. Use App Router only.
+2. Use Server Components by default.
+3. Add "use client" only when needed.
+4. Prefer Server Actions when appropriate.
+5. Use loading.tsx.
+6. Use error.tsx.
+7. Use route groups.
+8. Use metadata API for SEO.
+9. Use dynamic imports for heavy components.
+10. Optimize images using next/image.
+11. Never use pages router.
+12. Use Suspense when appropriate.
