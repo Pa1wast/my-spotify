@@ -24,6 +24,8 @@ function isTokenExpired(expiresAt: Date | null | undefined) {
   return expiresAt.getTime() <= Date.now() + 60_000;
 }
 
+const refreshTokenPromises = new Map<string, Promise<string | null>>();
+
 export async function getUserByAuth0Sub(auth0Sub: string) {
   return prisma.user.findUnique({
     where: { auth0Sub },
@@ -86,6 +88,24 @@ export async function getValidSpotifyAccessToken(user: User) {
 
   if (!isTokenExpired(user.spotifyTokenExpiresAt)) {
     return user.spotifyAccessToken;
+  }
+
+  const inFlightRefresh = refreshTokenPromises.get(user.id);
+  if (inFlightRefresh) {
+    return inFlightRefresh;
+  }
+
+  const refreshPromise = refreshAccessTokenForUser(user).finally(() => {
+    refreshTokenPromises.delete(user.id);
+  });
+
+  refreshTokenPromises.set(user.id, refreshPromise);
+  return refreshPromise;
+}
+
+async function refreshAccessTokenForUser(user: User) {
+  if (!user.spotifyRefreshToken) {
+    return null;
   }
 
   try {

@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
+
 import { DashboardPage } from "@/features/dashboard";
-import { SpotifyReconnectRedirect } from "@/features/spotify/components/spotify-reconnect-redirect";
 
 interface PageProps {
   searchParams: Promise<{
@@ -12,12 +13,10 @@ interface PageProps {
 export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams;
 
-  return (
-    <>
-      {params.spotify === "reconnect" ? (
-        <SpotifyReconnectRedirect forceConsent={params.consent === "1"} />
-      ) : null}
-      <DashboardPage timeRange={params.time_range} />
-    </>
-  );
+  if (params.spotify === "reconnect") {
+    const consent = params.consent === "1" ? "?consent=1" : "";
+    redirect(`/api/spotify/login${consent}`);
+  }
+
+  return <DashboardPage timeRange={params.time_range} />;
 }

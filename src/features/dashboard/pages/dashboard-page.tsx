@@ -16,6 +16,7 @@ import {
   getSpotifyTopArtistsForUser,
   getSpotifyTopTracksForUser,
   getUserByAuth0Sub,
+  getValidSpotifyAccessToken,
   isSpotifyConnected,
 } from "@/features/spotify/services/spotify-user.service";
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
@@ -71,6 +72,8 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
   let playlistsPanelMessage = "No playlists found on your account.";
 
   if (connected && user) {
+    await getValidSpotifyAccessToken(user).catch(() => null);
+
     const [tracksResult, artistsResult, recentResult, playlistsResult] =
       await Promise.allSettled([
         getSpotifyTopTracksForUser(user, activeRange),

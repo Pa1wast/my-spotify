@@ -1,6 +1,8 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
+const SPOTIFY_REQUEST_TIMEOUT_MS = 10_000;
+const MAX_RETRY_AFTER_MS = 5_000;
 
 function getRetryAfterMs(error: AxiosError): number | null {
   const retryAfter = error.response?.headers["retry-after"];
@@ -33,18 +35,28 @@ export async function spotifyRequest<T>(
   attempt = 0,
 ): Promise<T> {
   try {
-    const response = await axios.request<T>(config);
+    const response = await axios.request<T>({
+      timeout: SPOTIFY_REQUEST_TIMEOUT_MS,
+      ...config,
+    });
     return response.data;
   } catch (error) {
     if (!axios.isAxiosError(error)) {
       throw error;
     }
 
+    if (error.code === "ECONNABORTED") {
+      throw new Error("Spotify request timed out. Please try again.");
+    }
+
     const status = error.response?.status;
 
     if (status === 429 && attempt < MAX_RETRIES) {
       const retryAfterMs = getRetryAfterMs(error);
-      const backoffMs = retryAfterMs ?? 2 ** attempt * 1000;
+      const backoffMs = Math.min(
+        retryAfterMs ?? 2 ** attempt * 1000,
+        MAX_RETRY_AFTER_MS,
+      );
       await sleep(backoffMs);
       return spotifyRequest<T>(config, attempt + 1);
     }
@@ -54,6 +66,10 @@ export async function spotifyRequest<T>(
 }
 
 export function getSpotifyErrorMessage(error: unknown): string {
+  if (error instanceof Error && !axios.isAxiosError(error)) {
+    return error.message;
+  }
+
   if (!axios.isAxiosError(error)) {
     return "An unexpected error occurred while contacting Spotify.";
   }
