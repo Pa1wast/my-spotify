@@ -9,6 +9,7 @@ import { spotifyRequest } from "@/shared/lib/spotify-http";
 
 import type {
   SpotifyPlaylistsResponse,
+  SpotifyPlaylist,
   SpotifyRecentlyPlayedResponse,
   SpotifyTokenResponse,
   SpotifyTopArtistsResponse,
@@ -150,5 +151,11 @@ export async function fetchSpotifyPlaylists(accessToken: string, limit = 6) {
     },
   });
 
-  return response;
+  return {
+    ...response,
+    items: response.items.filter(
+      (playlist): playlist is SpotifyPlaylist =>
+        playlist != null && typeof playlist.id === "string",
+    ),
+  };
 }

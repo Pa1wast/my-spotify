@@ -35,6 +35,16 @@ function parseTimeRange(value: string | undefined): SpotifyTimeRange {
   return "short_term";
 }
 
+function getScopeReconnectMessage(scopeFailedPanels: string[], hasPartialData: boolean) {
+  const panelList = scopeFailedPanels.join(" and ");
+
+  if (hasPartialData) {
+    return `${panelList} need updated Spotify permissions. Reconnect to unlock them — your other data will keep working.`;
+  }
+
+  return "Spotify needs updated permissions. Reconnect to grant access to your listening data.";
+}
+
 export async function DashboardPage({
   spotifyStatus,
   timeRange,
@@ -57,8 +67,10 @@ export async function DashboardPage({
     ReturnType<typeof getSpotifyRecentlyPlayedForUser>
   > = null;
   let playlists: Awaited<ReturnType<typeof getSpotifyPlaylistsForUser>> = null;
-  let spotifyError: string | null = null;
-  let needsReconnect = false;
+  let scopeReconnectMessage: string | null = null;
+  let generalError: string | null = null;
+  let recentPanelMessage = "No recent plays returned yet.";
+  let playlistsPanelMessage = "No playlists found on your account.";
 
   if (connected && user) {
     const [tracksResult, artistsResult, recentResult, playlistsResult] =
@@ -85,22 +97,58 @@ export async function DashboardPage({
       playlists = playlistsResult.value;
     }
 
-    const failures = [
+    const scopeFailedPanels: string[] = [];
+
+    if (
+      recentResult.status === "rejected" &&
+      isSpotifyScopeError(recentResult.reason)
+    ) {
+      scopeFailedPanels.push("Recently played");
+      recentPanelMessage =
+        "Reconnect Spotify to grant access to your recently played tracks.";
+    } else if (recentResult.status === "rejected") {
+      recentPanelMessage = getSpotifyErrorMessage(recentResult.reason);
+    }
+
+    if (
+      playlistsResult.status === "rejected" &&
+      isSpotifyScopeError(playlistsResult.reason)
+    ) {
+      scopeFailedPanels.push("Playlists");
+      playlistsPanelMessage =
+        "Reconnect Spotify to grant access to your private playlists.";
+    } else if (playlistsResult.status === "rejected") {
+      playlistsPanelMessage = getSpotifyErrorMessage(playlistsResult.reason);
+    }
+
+    const hasPartialData = Boolean(
+      topTracks?.length || topArtists?.length || recentlyPlayed?.length || playlists?.items.length,
+    );
+
+    if (scopeFailedPanels.length > 0) {
+      scopeReconnectMessage = getScopeReconnectMessage(
+        scopeFailedPanels,
+        hasPartialData,
+      );
+    }
+
+    const nonScopeFailures = [
       tracksResult,
       artistsResult,
       recentResult,
       playlistsResult,
-    ].filter((result) => result.status === "rejected") as PromiseRejectedResult[];
+    ].filter(
+      (result) =>
+        result.status === "rejected" && !isSpotifyScopeError(result.reason),
+    ) as PromiseRejectedResult[];
 
-    if (failures.length > 0) {
-      spotifyError = getSpotifyErrorMessage(failures[0].reason);
-      needsReconnect = failures.some((failure) =>
-        isSpotifyScopeError(failure.reason),
-      );
+    if (nonScopeFailures.length > 0 && !scopeReconnectMessage) {
+      generalError = getSpotifyErrorMessage(nonScopeFailures[0].reason);
 
-      if (!needsReconnect) {
-        const refreshedUser = await getUserByAuth0Sub(session.user.sub);
-        needsReconnect = !isSpotifyConnected(refreshedUser);
+      const refreshedUser = await getUserByAuth0Sub(session.user.sub);
+      if (!isSpotifyConnected(refreshedUser)) {
+        scopeReconnectMessage = generalError;
+        generalError = null;
       }
     }
   }
@@ -129,14 +177,19 @@ export async function DashboardPage({
         <ConnectSpotifyCard />
       ) : (
         <>
-          {spotifyError ? (
-            needsReconnect ? (
-              <SpotifyReconnectBanner message={spotifyError} />
-            ) : (
-              <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {spotifyError}
-              </p>
-            )
+          {scopeReconnectMessage ? (
+            <SpotifyReconnectBanner
+              message={scopeReconnectMessage}
+              variant={
+                topTracks?.length || topArtists?.length ? "warning" : "error"
+              }
+            />
+          ) : null}
+
+          {generalError ? (
+            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {generalError}
+            </p>
           ) : null}
 
           <TimeRangeTabs
@@ -145,53 +198,53 @@ export async function DashboardPage({
           />
 
           <div className="grid gap-6 md:grid-cols-2">
-                {topTracks && topTracks.length > 0 ? (
-                  <TopTracksCard tracks={topTracks} />
-                ) : (
-                  <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                    <h2 className="text-lg font-medium">Top tracks</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      No top tracks yet. Listen on Spotify and check back later.
-                    </p>
-                  </section>
-                )}
+            {topTracks && topTracks.length > 0 ? (
+              <TopTracksCard tracks={topTracks} />
+            ) : (
+              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+                <h2 className="text-lg font-medium">Top tracks</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No top tracks yet. Listen on Spotify and check back later.
+                </p>
+              </section>
+            )}
 
-                {topArtists && topArtists.length > 0 ? (
-                  <TopArtistsCard artists={topArtists} />
-                ) : (
-                  <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                    <h2 className="text-lg font-medium">Top artists</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      No top artists yet. Listen on Spotify and check back later.
-                    </p>
-                  </section>
-                )}
+            {topArtists && topArtists.length > 0 ? (
+              <TopArtistsCard artists={topArtists} />
+            ) : (
+              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+                <h2 className="text-lg font-medium">Top artists</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No top artists yet. Listen on Spotify and check back later.
+                </p>
+              </section>
+            )}
 
-                {recentlyPlayed && recentlyPlayed.length > 0 ? (
-                  <RecentlyPlayedCard items={recentlyPlayed} />
-                ) : (
-                  <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                    <h2 className="text-lg font-medium">Recently played</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      No recent plays returned yet.
-                    </p>
-                  </section>
-                )}
+            {recentlyPlayed && recentlyPlayed.length > 0 ? (
+              <RecentlyPlayedCard items={recentlyPlayed} />
+            ) : (
+              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+                <h2 className="text-lg font-medium">Recently played</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {recentPanelMessage}
+                </p>
+              </section>
+            )}
 
-                {playlists && playlists.items.length > 0 ? (
-                  <PlaylistsPreviewCard
-                    playlists={playlists.items}
-                    total={playlists.total}
-                  />
-                ) : (
-                  <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                    <h2 className="text-lg font-medium">Your playlists</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      No playlists found on your account.
-                    </p>
-                  </section>
-                )}
-              </div>
+            {playlists && playlists.items.length > 0 ? (
+              <PlaylistsPreviewCard
+                playlists={playlists.items}
+                total={playlists.total}
+              />
+            ) : (
+              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+                <h2 className="text-lg font-medium">Your playlists</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {playlistsPanelMessage}
+                </p>
+              </section>
+            )}
+          </div>
         </>
       )}
     </div>

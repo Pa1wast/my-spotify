@@ -14,40 +14,56 @@ export function TopTracksCard({ tracks }: TopTracksCardProps) {
       <h2 className="text-lg font-medium">Top tracks</h2>
       <ul className="mt-4 space-y-3">
         {tracks.map((track, index) => {
-          const artwork = track.album.images[0]?.url;
+          const artwork = track.album?.images?.[0]?.url;
+          const artistNames =
+            track.artists?.map((artist) => artist.name).join(", ") ??
+            "Unknown artist";
+          const spotifyUrl = track.external_urls?.spotify;
+
+          const row = (
+            <>
+              <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground">
+                {index + 1}
+              </span>
+              <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+                {artwork ? (
+                  <Image
+                    src={artwork}
+                    alt={track.album?.name ?? track.name}
+                    fill
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{track.name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {artistNames}
+                </p>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {formatDuration(track.duration_ms)}
+              </span>
+            </>
+          );
 
           return (
             <li key={track.id}>
-              <Link
-                href={track.external_urls.spotify}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2 transition-colors hover:bg-muted/40"
-              >
-                <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground">
-                  {index + 1}
-                </span>
-                <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
-                  {artwork ? (
-                    <Image
-                      src={artwork}
-                      alt={track.album.name}
-                      fill
-                      className="object-cover"
-                      sizes="44px"
-                    />
-                  ) : null}
+              {spotifyUrl ? (
+                <Link
+                  href={spotifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2 transition-colors hover:bg-muted/40"
+                >
+                  {row}
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
+                  {row}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{track.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {track.artists.map((artist) => artist.name).join(", ")}
-                  </p>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {formatDuration(track.duration_ms)}
-                </span>
-              </Link>
+              )}
             </li>
           );
         })}

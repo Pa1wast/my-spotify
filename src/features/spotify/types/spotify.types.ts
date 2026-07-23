@@ -28,8 +28,8 @@ export interface SpotifyUserProfile {
 export interface SpotifyArtist {
   id: string;
   name: string;
-  images: SpotifyImage[];
-  genres: string[];
+  images?: SpotifyImage[];
+  genres?: string[];
   popularity: number;
   external_urls: SpotifyExternalUrls;
 }
@@ -57,19 +57,19 @@ export interface SpotifyTopArtistsResponse {
 export interface SpotifyPlaylist {
   id: string;
   name: string;
-  description: string | null;
-  images: SpotifyImage[];
-  tracks: {
-    total: number;
+  description?: string | null;
+  images?: SpotifyImage[];
+  tracks?: {
+    total?: number;
   };
-  owner: {
-    display_name: string | null;
+  owner?: {
+    display_name?: string | null;
   };
-  external_urls: SpotifyExternalUrls;
+  external_urls?: SpotifyExternalUrls;
 }
 
 export interface SpotifyPlaylistsResponse {
-  items: SpotifyPlaylist[];
+  items: Array<SpotifyPlaylist | null>;
   total: number;
 }
 
