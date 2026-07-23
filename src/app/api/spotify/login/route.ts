@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   if (!session) {
     const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("returnTo", "/");
+    loginUrl.searchParams.set("returnTo", "/api/spotify/login");
     return NextResponse.redirect(loginUrl);
   }
 
@@ -30,6 +30,6 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/?spotify=error", request.url));
+    return NextResponse.redirect(new URL("/dashboard?spotify=error", request.url));
   }
 }

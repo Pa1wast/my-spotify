@@ -5,11 +5,13 @@ export const SPOTIFY_SCOPES = [
   "user-read-email",
   "user-read-private",
   "user-top-read",
-  "user-library-read",
+  "user-read-recently-played",
   "playlist-read-private",
 ].join(" ");
 
 export const SPOTIFY_STATE_COOKIE = "spotify_oauth_state";
+
+export type SpotifyTimeRange = "short_term" | "medium_term" | "long_term";
 
 export function getSpotifyConfig() {
   const clientId = process.env.SPOTIFY_CLIENT_ID;

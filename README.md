@@ -33,6 +33,7 @@ Required for local auth/database:
 - `DIRECT_URL` — Neon direct connection string (for migrations)
 - `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`
 - `APP_BASE_URL` — `http://localhost:3000` locally
+- `SESSION_ABSOLUTE_SECONDS` — optional override for Auth0 session lifetime (fixed, non-rolling). Defaults to 5 minutes in development and ~90 days in production.
 
 Generate `AUTH0_SECRET`:
 
@@ -74,14 +75,14 @@ For production on Vercel, add your deployment URL with the same paths (e.g. `htt
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Unauthenticated visitors are redirected to Auth0 login; after login you land on `/dashboard`.
 
 ## Project structure
 
 ```
 src/
 ├── app/                 # App Router routes (thin wrappers)
-├── features/            # Feature modules (auth, player, home, ...)
+├── features/            # Feature modules (auth, dashboard, spotify, player, ...)
 ├── shared/              # Shared UI, lib, constants, types
 ├── layouts/
 └── providers/           # Theme, React Query, Auth0 providers
@@ -100,7 +101,7 @@ Prisma client generation runs automatically via `postinstall` and `build`.
 
 1. Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Add redirect URIs:
-   - `http://localhost:3000/api/spotify/callback`
+   - `http://127.0.0.1:3000/api/spotify/callback` (local — not `localhost`)
    - `https://your-vercel-url.vercel.app/api/spotify/callback`
 3. Add your Spotify account under **User Management** (Development mode)
 4. Set env vars locally and on Vercel:
@@ -108,7 +109,7 @@ Prisma client generation runs automatically via `postinstall` and `build`.
 ```bash
 SPOTIFY_CLIENT_ID=your-client-id
 SPOTIFY_CLIENT_SECRET=your-client-secret
-SPOTIFY_REDIRECT_URI=http://localhost:3000/api/spotify/callback
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/api/spotify/callback
 ```
 
 On Vercel, use your production URL for `SPOTIFY_REDIRECT_URI`.
@@ -119,7 +120,9 @@ On Vercel, use your production URL for `SPOTIFY_REDIRECT_URI`.
 npm run db:push
 ```
 
-6. Log in with Auth0, click **Connect Spotify**, then view your top tracks on the home page.
+6. Log in with Auth0, click **Connect Spotify**, then view your dashboard at `/dashboard`.
+
+**Scopes:** The app requests `user-read-email`, `user-read-private`, `user-top-read`, `user-read-recently-played`, and `playlist-read-private`. If scopes change, disconnect and reconnect Spotify so the new permissions are granted.
 
 ## Agent skills & rules
 

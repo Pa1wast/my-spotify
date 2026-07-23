@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+
+Spotify Web API Rules:
+
+1. **OpenAPI spec:** Use https://developer.spotify.com/reference/web-api/open-api-schema.yaml for all endpoint paths, parameters, and response schemas. Do not guess endpoints or field names.
+
+2. **Authorization:**
+   - User-specific data: Authorization Code with PKCE, or Authorization Code with client secret on a secure backend (this project uses the latter).
+   - Public catalog only: Client Credentials.
+   - Never use Implicit Grant (deprecated).
+
+3. **Redirect URIs:** HTTPS in production. Local dev: `http://127.0.0.1` only — never `http://localhost` or wildcards. See https://developer.spotify.com/documentation/web-api/concepts/redirect_uri
+
+4. **Scopes:** Request minimum scopes needed per feature. Add scopes when features ship, not preemptively.
+
+5. **Token management:** Store tokens server-side only. Never expose Client Secret client-side. Implement refresh; re-authorize when refresh token expires.
+
+6. **Rate limits:** Exponential backoff on HTTP 429; respect `Retry-After`. No tight retry loops.
+
+7. **Deprecated endpoints:** Do not use deprecated endpoints. Prefer `/playlists/{id}/items` over `/playlists/{id}/tracks`. Prefer `/me/library` over type-specific library endpoints when available.
+
+8. **Error handling:** Handle documented HTTP error codes; surface meaningful user feedback from Spotify error responses.
+
+9. **Developer ToS:** Do not cache Spotify content beyond immediate use. Attribute content to Spotify. Do not use API data to train ML models.

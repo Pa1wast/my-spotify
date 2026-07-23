@@ -6,6 +6,7 @@ import {
   getUserByAuth0Sub,
   isSpotifyConnected,
 } from "@/features/spotify/services/spotify-user.service";
+import { getSpotifyErrorMessage } from "@/shared/lib/spotify-http";
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -49,7 +50,17 @@ export async function SpotifyPanel() {
     );
   }
 
-  const topTracks = await getSpotifyTopTracksForUser(user);
+  let topTracks = null;
+  let spotifyError: string | null = null;
+  let needsReconnect = false;
+
+  try {
+    topTracks = await getSpotifyTopTracksForUser(user);
+  } catch (error) {
+    spotifyError = getSpotifyErrorMessage(error);
+    const refreshedUser = await getUserByAuth0Sub(session.user.sub);
+    needsReconnect = !isSpotifyConnected(refreshedUser);
+  }
 
   return (
     <section className="rounded-[var(--radius)] border border-border bg-card p-6 shadow-sm">
@@ -68,7 +79,19 @@ export async function SpotifyPanel() {
 
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Your top tracks (last 4 weeks)</h3>
-        {topTracks && topTracks.length > 0 ? (
+        {spotifyError ? (
+          <div className="space-y-3">
+            <p className="text-sm text-destructive">{spotifyError}</p>
+            {needsReconnect ? (
+              <a
+                href="/api/spotify/login"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              >
+                Reconnect Spotify
+              </a>
+            ) : null}
+          </div>
+        ) : topTracks && topTracks.length > 0 ? (
           <ul className="space-y-2">
             {topTracks.map((track) => (
               <li

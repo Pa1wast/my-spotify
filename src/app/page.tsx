@@ -1,13 +1,13 @@
-import { HomePage } from "@/features/home/pages/home-page";
+import { redirect } from "next/navigation";
 
-interface PageProps {
-  searchParams: Promise<{
-    spotify?: string;
-  }>;
-}
+import { auth0 } from "@/shared/lib/auth0";
 
-export default async function Page({ searchParams }: PageProps) {
-  const params = await searchParams;
+export default async function Page() {
+  const session = await auth0.getSession();
 
-  return <HomePage spotifyStatus={params.spotify} />;
+  if (session) {
+    redirect("/dashboard");
+  }
+
+  redirect("/auth/login");
 }

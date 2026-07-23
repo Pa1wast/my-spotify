@@ -1,0 +1,56 @@
+import Image from "next/image";
+import Link from "next/link";
+
+import type { SpotifyRecentlyPlayedItem } from "@/features/spotify/types/spotify.types";
+import { formatDuration, formatRelativeTime } from "@/shared/lib/format";
+
+interface RecentlyPlayedCardProps {
+  items: SpotifyRecentlyPlayedItem[];
+}
+
+export function RecentlyPlayedCard({ items }: RecentlyPlayedCardProps) {
+  return (
+    <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+      <h2 className="text-lg font-medium">Recently played</h2>
+      <ul className="mt-4 space-y-3">
+        {items.map((item) => {
+          const track = item.track;
+          const artwork = track.album.images[0]?.url;
+
+          return (
+            <li key={`${track.id}-${item.played_at}`}>
+              <Link
+                href={track.external_urls.spotify}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2 transition-colors hover:bg-muted/40"
+              >
+                <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+                  {artwork ? (
+                    <Image
+                      src={artwork}
+                      alt={track.album.name}
+                      fill
+                      className="object-cover"
+                      sizes="44px"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{track.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {track.artists.map((artist) => artist.name).join(", ")}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right text-xs text-muted-foreground">
+                  <p>{formatRelativeTime(item.played_at)}</p>
+                  <p>{formatDuration(track.duration_ms)}</p>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
