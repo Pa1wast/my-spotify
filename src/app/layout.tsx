@@ -33,6 +33,11 @@ export const metadata: Metadata = {
   description: "A personal music app powered by Spotify and your own library.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 function resolveInitialTheme(cookieValue: string | undefined): AppTheme {
   if (cookieValue && APP_THEMES.includes(cookieValue as AppTheme)) {
     return cookieValue as AppTheme;
@@ -58,7 +63,7 @@ export default async function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} ${notoSerifGeorgian.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full min-w-0 w-full flex-col overflow-x-hidden">
         <AppProviders initialTheme={initialTheme}>{children}</AppProviders>
       </body>
     </html>

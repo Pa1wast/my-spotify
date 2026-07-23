@@ -10,9 +10,9 @@ interface RecentlyPlayedCardProps {
 
 export function RecentlyPlayedCard({ items }: RecentlyPlayedCardProps) {
   return (
-    <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+    <section className="min-w-0 w-full overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
       <h2 className="text-lg font-medium">Recently played</h2>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 min-w-0 space-y-3">
         {items.map((item) => {
           const track = item.track;
           const artwork = track.album?.images?.[0]?.url;
@@ -48,18 +48,18 @@ export function RecentlyPlayedCard({ items }: RecentlyPlayedCardProps) {
           );
 
           return (
-            <li key={`${track.id}-${item.played_at}`}>
+            <li key={`${track.id}-${item.played_at}`} className="min-w-0">
               {spotifyUrl ? (
                 <Link
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2 transition-colors hover:bg-muted/40"
+                  className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 transition-colors hover:bg-muted/40 sm:gap-3 sm:px-3"
                 >
                   {row}
                 </Link>
               ) : (
-                <div className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
+                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 sm:gap-3 sm:px-3">
                   {row}
                 </div>
               )}

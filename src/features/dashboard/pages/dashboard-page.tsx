@@ -1,7 +1,10 @@
+import { Suspense } from "react";
+
 import { ConnectSpotifyCard } from "../components/connect-spotify-card";
 import { DashboardHeader } from "../components/dashboard-header";
 import { PlaylistsPreviewCard } from "../components/playlists-preview-card";
 import { RecentlyPlayedCard } from "../components/recently-played-card";
+import { SpotifyFlashMessage } from "../components/spotify-flash-message";
 import { SpotifyReconnectBanner } from "../components/spotify-reconnect-banner";
 import { TimeRangeTabs } from "../components/time-range-tabs";
 import { TopArtistsCard } from "../components/top-artists-card";
@@ -23,7 +26,6 @@ import {
 } from "@/shared/lib/spotify-http";
 
 interface DashboardPageProps {
-  spotifyStatus?: string;
   timeRange?: string;
 }
 
@@ -45,10 +47,7 @@ function getScopeReconnectMessage(scopeFailedPanels: string[], hasPartialData: b
   return "Spotify needs updated permissions. Reconnect to grant access to your listening data.";
 }
 
-export async function DashboardPage({
-  spotifyStatus,
-  timeRange,
-}: DashboardPageProps) {
+export async function DashboardPage({ timeRange }: DashboardPageProps) {
   const session = await auth0.getSession();
 
   if (!session) {
@@ -154,24 +153,16 @@ export async function DashboardPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden sm:space-y-6">
       <DashboardHeader
         userName={displayName}
         spotifyConnected={connected}
         spotifyDisplayName={user?.spotifyDisplayName}
       />
 
-      {spotifyStatus === "connected" ? (
-        <p className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
-          Spotify connected successfully.
-        </p>
-      ) : null}
-
-      {spotifyStatus === "error" ? (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Spotify connection failed. Check your redirect URI and try again.
-        </p>
-      ) : null}
+      <Suspense fallback={null}>
+        <SpotifyFlashMessage />
+      </Suspense>
 
       {!connected ? (
         <ConnectSpotifyCard />
@@ -192,16 +183,13 @@ export async function DashboardPage({
             </p>
           ) : null}
 
-          <TimeRangeTabs
-            activeRange={activeRange}
-            spotifyStatus={spotifyStatus}
-          />
+          <TimeRangeTabs activeRange={activeRange} />
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 [&>*]:min-w-0">
             {topTracks && topTracks.length > 0 ? (
               <TopTracksCard tracks={topTracks} />
             ) : (
-              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-medium">Top tracks</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   No top tracks yet. Listen on Spotify and check back later.
@@ -212,7 +200,7 @@ export async function DashboardPage({
             {topArtists && topArtists.length > 0 ? (
               <TopArtistsCard artists={topArtists} />
             ) : (
-              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-medium">Top artists</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   No top artists yet. Listen on Spotify and check back later.
@@ -223,7 +211,7 @@ export async function DashboardPage({
             {recentlyPlayed && recentlyPlayed.length > 0 ? (
               <RecentlyPlayedCard items={recentlyPlayed} />
             ) : (
-              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-medium">Recently played</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {recentPanelMessage}
@@ -237,7 +225,7 @@ export async function DashboardPage({
                 total={playlists.total}
               />
             ) : (
-              <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
                 <h2 className="text-lg font-medium">Your playlists</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {playlistsPanelMessage}

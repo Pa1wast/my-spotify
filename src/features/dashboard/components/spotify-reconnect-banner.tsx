@@ -16,7 +16,7 @@ export function SpotifyReconnectBanner({
       : "border-destructive/30 bg-destructive/10 text-destructive";
 
   return (
-    <div className={cn("rounded-lg border px-4 py-3", styles)}>
+    <div className={cn("min-w-0 break-words rounded-lg border px-4 py-3", styles)}>
       <p className="text-sm">{message}</p>
       <a
         href="/api/spotify/login"

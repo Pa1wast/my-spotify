@@ -11,9 +11,6 @@ export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams;
 
   return (
-    <DashboardPage
-      spotifyStatus={params.spotify}
-      timeRange={params.time_range}
-    />
+    <DashboardPage timeRange={params.time_range} />
   );
 }

@@ -27,12 +27,12 @@ export function PlaylistsPreviewCard({
   total,
 }: PlaylistsPreviewCardProps) {
   return (
-    <section className="rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-medium">Your playlists</h2>
-        <span className="text-xs text-muted-foreground">{total} total</span>
+    <section className="min-w-0 w-full overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <h2 className="min-w-0 truncate text-lg font-medium">Your playlists</h2>
+        <span className="shrink-0 text-xs text-muted-foreground">{total} total</span>
       </div>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 min-w-0 space-y-3">
         {playlists.map((playlist) => {
           const image = playlist.images?.[0]?.url;
           const spotifyUrl = playlist.external_urls?.spotify;
@@ -63,18 +63,18 @@ export function PlaylistsPreviewCard({
           );
 
           return (
-            <li key={playlist.id}>
+            <li key={playlist.id} className="min-w-0">
               {spotifyUrl ? (
                 <Link
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2 transition-colors hover:bg-muted/40"
+                  className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 transition-colors hover:bg-muted/40 sm:gap-3 sm:px-3"
                 >
                   {content}
                 </Link>
               ) : (
-                <div className="flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2">
+                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 sm:gap-3 sm:px-3">
                   {content}
                 </div>
               )}

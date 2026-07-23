@@ -16,12 +16,12 @@ export function DashboardShell({
   userPicture,
 }: DashboardShellProps) {
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
       <header className="sticky top-0 z-20 border-b border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <div className="min-w-0">
-            <Link href="/dashboard" className="block truncate">
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
+            <Link href="/dashboard" className="block min-w-0 overflow-hidden">
+              <p className="truncate text-xs font-medium uppercase tracking-wider text-primary">
                 My Spotify
               </p>
               <p className="truncate text-sm text-muted-foreground">Dashboard</p>
@@ -47,7 +47,10 @@ export function DashboardShell({
             </span>
             <a
               href="/auth/logout"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "shrink-0",
+              )}
             >
               Log out
             </a>
@@ -55,7 +58,7 @@ export function DashboardShell({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
         {children}
       </main>
 

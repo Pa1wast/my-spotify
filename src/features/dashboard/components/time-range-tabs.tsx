@@ -14,26 +14,18 @@ const TIME_RANGE_OPTIONS: Array<{
 
 interface TimeRangeTabsProps {
   activeRange: SpotifyTimeRange;
-  spotifyStatus?: string;
 }
 
-export function TimeRangeTabs({
-  activeRange,
-  spotifyStatus,
-}: TimeRangeTabsProps) {
+export function TimeRangeTabs({ activeRange }: TimeRangeTabsProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex min-w-0 flex-wrap gap-2">
       {TIME_RANGE_OPTIONS.map((option) => {
         const isActive = option.value === activeRange;
-        const href =
-          spotifyStatus && spotifyStatus.length > 0
-            ? `/dashboard?time_range=${option.value}&spotify=${spotifyStatus}`
-            : `/dashboard?time_range=${option.value}`;
 
         return (
           <Link
             key={option.value}
-            href={href}
+            href={`/dashboard?time_range=${option.value}`}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               isActive
