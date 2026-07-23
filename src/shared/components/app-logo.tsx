@@ -50,7 +50,9 @@ export function AppLogo({
 }: AppLogoProps) {
   const asset = LOGO_ASSETS[variant];
   const sizeClass =
-    variant === "icon" ? ICON_SIZE_CLASSES[size] : FULL_SIZE_CLASSES[size];
+    variant === "icon"
+      ? ICON_SIZE_CLASSES[size === "sidebar" ? "md" : size]
+      : FULL_SIZE_CLASSES[size];
 
   const image = (
     <Image

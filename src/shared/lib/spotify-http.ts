@@ -45,9 +45,9 @@ export function formatRateLimitMessage(retryAfterMs: number) {
 function getHeaderValue(
   headers: AxiosError["response"] extends infer R
     ? R extends { headers: infer H }
-      ? H
-      : never
-    : never,
+      ? H | undefined
+      : unknown
+    : unknown,
   name: string,
 ): string | null {
   if (!headers || typeof headers !== "object") {

@@ -24,7 +24,8 @@ interface DataTablePagination {
 }
 
 interface DataTableProps<TData> {
-  columns: ColumnDef<TData, unknown>[];
+  // TanStack column helpers produce mixed TValue types; `any` is required here.
+  columns: ColumnDef<TData, any>[];
   data: TData[];
   isLoading?: boolean;
   emptyMessage?: string;
