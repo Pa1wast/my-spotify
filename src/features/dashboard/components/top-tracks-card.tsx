@@ -10,9 +10,11 @@ interface TopTracksCardProps {
 
 export function TopTracksCard({ tracks }: TopTracksCardProps) {
   return (
-    <section className="min-w-0 w-full overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-      <h2 className="text-lg font-medium">Top tracks</h2>
-      <ul className="mt-4 min-w-0 space-y-3">
+    <section className="min-w-0 w-full">
+      <h2 className="border-b border-border pb-2 text-sm font-medium">
+        Top tracks
+      </h2>
+      <ul className="min-w-0 divide-y divide-border">
         {tracks.map((track, index) => {
           const artwork = track.album?.images?.[0]?.url;
           const artistNames =
@@ -22,27 +24,27 @@ export function TopTracksCard({ tracks }: TopTracksCardProps) {
 
           const row = (
             <>
-              <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground">
+              <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
                 {index + 1}
               </span>
-              <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+              <div className="relative size-9 shrink-0 overflow-hidden rounded-sm bg-muted">
                 {artwork ? (
                   <Image
                     src={artwork}
                     alt={track.album?.name ?? track.name}
                     fill
                     className="object-cover"
-                    sizes="44px"
+                    sizes="36px"
                   />
                 ) : null}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{track.name}</p>
+                <p className="truncate text-sm">{track.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
                   {artistNames}
                 </p>
               </div>
-              <span className="shrink-0 text-xs text-muted-foreground">
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                 {formatDuration(track.duration_ms)}
               </span>
             </>
@@ -55,12 +57,12 @@ export function TopTracksCard({ tracks }: TopTracksCardProps) {
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 transition-colors hover:bg-muted/40 sm:gap-3 sm:px-3"
+                  className="flex min-w-0 items-center gap-3 py-3 transition-opacity hover:opacity-80"
                 >
                   {row}
                 </Link>
               ) : (
-                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 sm:gap-3 sm:px-3">
+                <div className="flex min-w-0 items-center gap-3 py-3">
                   {row}
                 </div>
               )}

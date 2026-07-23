@@ -41,7 +41,7 @@ export async function SpotifyPanel() {
           Connect Spotify to pull in your profile and top tracks.
         </p>
         <a
-          href="/api/spotify/login"
+          href="/api/spotify/login?consent=1"
           className={cn(buttonVariants({ size: "sm" }))}
         >
           Connect Spotify
@@ -84,7 +84,7 @@ export async function SpotifyPanel() {
             <p className="text-sm text-destructive">{spotifyError}</p>
             {needsReconnect ? (
               <a
-                href="/api/spotify/login"
+                href="/api/spotify/login?consent=1"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
               >
                 Reconnect Spotify

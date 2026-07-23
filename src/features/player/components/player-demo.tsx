@@ -7,7 +7,7 @@ const demoTrack: Track = {
   title: "Midnight Echoes",
   artist: "My Spotify",
   album: "Scaffold Sessions",
-  artwork: "/placeholder.svg",
+  artwork: "/logo/logo-icon.png",
   duration: 214,
 };
 
@@ -18,7 +18,7 @@ const demoQueue: Track[] = [
     title: "Neon Horizon",
     artist: "My Spotify",
     album: "Scaffold Sessions",
-    artwork: "/placeholder.svg",
+    artwork: "/logo/logo-icon.png",
     duration: 198,
   },
   {
@@ -26,7 +26,7 @@ const demoQueue: Track[] = [
     title: "Ember Pulse",
     artist: "My Spotify",
     album: "Scaffold Sessions",
-    artwork: "/placeholder.svg",
+    artwork: "/logo/logo-icon.png",
     duration: 241,
   },
 ];

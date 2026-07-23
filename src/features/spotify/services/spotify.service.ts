@@ -11,6 +11,7 @@ import type {
   SpotifyPlaylistsResponse,
   SpotifyPlaylist,
   SpotifyRecentlyPlayedResponse,
+  SpotifySavedTracksResponse,
   SpotifyTokenResponse,
   SpotifyTopArtistsResponse,
   SpotifyTopTracksResponse,
@@ -25,7 +26,10 @@ function getBasicAuthHeader(clientId: string, clientSecret: string) {
   return `Basic ${credentials}`;
 }
 
-export function buildSpotifyAuthorizeUrl(state: string) {
+export function buildSpotifyAuthorizeUrl(
+  state: string,
+  { forceConsent = false }: { forceConsent?: boolean } = {},
+) {
   const { clientId, redirectUri } = getSpotifyConfig();
   const params = new URLSearchParams({
     client_id: clientId,
@@ -34,8 +38,11 @@ export function buildSpotifyAuthorizeUrl(state: string) {
     scope: SPOTIFY_SCOPES,
     state,
     access_type: "offline",
-    prompt: "consent",
   });
+
+  if (forceConsent) {
+    params.set("prompt", "consent");
+  }
 
   return `${SPOTIFY_ACCOUNTS_URL}/authorize?${params.toString()}`;
 }
@@ -129,16 +136,45 @@ export async function fetchSpotifyRecentlyPlayed(
   accessToken: string,
   limit = 10,
 ) {
-  const response = await spotifyRequest<SpotifyRecentlyPlayedResponse>({
+  const response = await fetchSpotifyRecentlyPlayedWithCursor(
+    accessToken,
+    limit,
+  );
+
+  return response.items;
+}
+
+export async function fetchSpotifyRecentlyPlayedWithCursor(
+  accessToken: string,
+  limit = 50,
+  after?: string,
+) {
+  return spotifyRequest<SpotifyRecentlyPlayedResponse>({
     method: "GET",
     url: `${SPOTIFY_API_URL}/me/player/recently-played`,
-    params: { limit },
+    params: {
+      limit,
+      ...(after ? { after } : {}),
+    },
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+}
 
-  return response.items;
+export async function fetchSpotifySavedTracks(
+  accessToken: string,
+  limit = 20,
+  offset = 0,
+) {
+  return spotifyRequest<SpotifySavedTracksResponse>({
+    method: "GET",
+    url: `${SPOTIFY_API_URL}/me/tracks`,
+    params: { limit, offset },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 }
 
 export async function fetchSpotifyPlaylists(accessToken: string, limit = 6) {

@@ -31,6 +31,10 @@ const notoSerifGeorgian = Noto_Serif_Georgian({
 export const metadata: Metadata = {
   title: "My Spotify",
   description: "A personal music app powered by Spotify and your own library.",
+  icons: {
+    icon: "/logo/logo-icon.png",
+    apple: "/logo/logo-icon.png",
+  },
 };
 
 export const viewport = {

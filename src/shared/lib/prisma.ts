@@ -6,6 +6,8 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+const REQUIRED_DELEGATES = ["userSyncState", "playEvent"] as const;
+
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
 
@@ -24,8 +26,35 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+function hasRequiredDelegates(client: PrismaClient) {
+  return REQUIRED_DELEGATES.every((delegate) => delegate in client);
 }
+
+function getOrCreatePrismaClient() {
+  const cached = globalForPrisma.prisma;
+
+  if (cached && hasRequiredDelegates(cached)) {
+    return cached;
+  }
+
+  const client = createPrismaClient();
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
+}
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getOrCreatePrismaClient();
+    const value = client[prop as keyof PrismaClient];
+
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+
+    return value;
+  },
+});

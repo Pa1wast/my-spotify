@@ -5,6 +5,7 @@ import {
   exchangeSpotifyCode,
   fetchSpotifyPlaylists,
   fetchSpotifyRecentlyPlayed,
+  fetchSpotifySavedTracks,
   fetchSpotifyTopArtists,
   fetchSpotifyTopTracks,
   fetchSpotifyUserProfile,
@@ -156,6 +157,16 @@ export async function getSpotifyTopArtistsForUser(
 export async function getSpotifyRecentlyPlayedForUser(user: User) {
   return withSpotifyAccessToken(user, (token) =>
     fetchSpotifyRecentlyPlayed(token),
+  );
+}
+
+export async function getSpotifySavedTracksForUser(
+  user: User,
+  limit = 20,
+  offset = 0,
+) {
+  return withSpotifyAccessToken(user, (token) =>
+    fetchSpotifySavedTracks(token, limit, offset),
   );
 }
 

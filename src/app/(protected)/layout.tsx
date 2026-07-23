@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { DashboardShell } from "@/layouts/dashboard-shell";
+import { AppShell } from "@/layouts/app-shell";
 import { auth0 } from "@/shared/lib/auth0";
 
 export default async function ProtectedLayout({
@@ -18,8 +18,8 @@ export default async function ProtectedLayout({
     session.user.name ?? session.user.email ?? session.user.nickname ?? "User";
 
   return (
-    <DashboardShell userName={userName} userPicture={session.user.picture}>
+    <AppShell userName={userName} userPicture={session.user.picture}>
       {children}
-    </DashboardShell>
+    </AppShell>
   );
 }

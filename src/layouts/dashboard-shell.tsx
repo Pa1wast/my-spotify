@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 
+import { AppLogo } from "@/shared/components/app-logo";
 import { buttonVariants } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 
@@ -20,12 +20,8 @@ export function DashboardShell({
       <header className="sticky top-0 z-20 border-b border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <div className="min-w-0">
-            <Link href="/dashboard" className="block min-w-0 overflow-hidden">
-              <p className="truncate text-xs font-medium uppercase tracking-wider text-primary">
-                My Spotify
-              </p>
-              <p className="truncate text-sm text-muted-foreground">Dashboard</p>
-            </Link>
+            <AppLogo variant="full" size="sm" />
+            <p className="mt-1 truncate text-sm text-muted-foreground">Dashboard</p>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
@@ -14,27 +16,50 @@ const TIME_RANGE_OPTIONS: Array<{
 
 interface TimeRangeTabsProps {
   activeRange: SpotifyTimeRange;
+  spotifyStatus?: string;
+  useLinks?: boolean;
+  onChange?: (range: SpotifyTimeRange) => void;
 }
 
-export function TimeRangeTabs({ activeRange }: TimeRangeTabsProps) {
+export function TimeRangeTabs({
+  activeRange,
+  spotifyStatus,
+  useLinks = true,
+  onChange,
+}: TimeRangeTabsProps) {
   return (
-    <div className="flex min-w-0 flex-wrap gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm">
       {TIME_RANGE_OPTIONS.map((option) => {
         const isActive = option.value === activeRange;
+        const className = cn(
+          "transition-colors",
+          isActive
+            ? "font-medium text-foreground underline underline-offset-4"
+            : "text-muted-foreground hover:text-foreground",
+        );
+
+        if (useLinks) {
+          const href =
+            spotifyStatus && spotifyStatus.length > 0
+              ? `/dashboard?time_range=${option.value}&spotify=${spotifyStatus}`
+              : `/dashboard?time_range=${option.value}`;
+
+          return (
+            <Link key={option.value} href={href} className={className}>
+              {option.label}
+            </Link>
+          );
+        }
 
         return (
-          <Link
+          <button
             key={option.value}
-            href={`/dashboard?time_range=${option.value}`}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              isActive
-                ? "border-primary bg-primary/15 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
-            )}
+            type="button"
+            onClick={() => onChange?.(option.value)}
+            className={className}
           >
             {option.label}
-          </Link>
+          </button>
         );
       })}
     </div>

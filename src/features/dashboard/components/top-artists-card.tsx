@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { SpotifyArtist } from "@/features/spotify/types/spotify.types";
-import { cn } from "@/shared/lib/utils";
 
 interface TopArtistsCardProps {
   artists: SpotifyArtist[];
@@ -10,58 +9,63 @@ interface TopArtistsCardProps {
 
 export function TopArtistsCard({ artists }: TopArtistsCardProps) {
   return (
-    <section className="min-w-0 w-full overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-      <h2 className="text-lg font-medium">Top artists</h2>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-        {artists.map((artist) => {
+    <section className="min-w-0 w-full">
+      <h2 className="border-b border-border pb-2 text-sm font-medium">
+        Top artists
+      </h2>
+      <ul className="min-w-0 divide-y divide-border">
+        {artists.map((artist, index) => {
           const image = artist.images?.[0]?.url;
           const spotifyUrl = artist.external_urls?.spotify;
           const primaryGenre = artist.genres?.[0];
 
-          const card = (
+          const row = (
             <>
-              <div className="relative mx-auto size-16 overflow-hidden rounded-full bg-muted sm:size-20">
+              <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                {index + 1}
+              </span>
+              <div className="relative size-9 shrink-0 overflow-hidden rounded-full bg-muted">
                 {image ? (
                   <Image
                     src={image}
                     alt={artist.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 640px) 80px, 96px"
+                    sizes="36px"
                   />
                 ) : null}
               </div>
-              <p className="mt-2 truncate text-center text-sm font-medium sm:mt-3">
-                {artist.name}
-              </p>
-              {primaryGenre ? (
-                <p className="mt-1 truncate text-center text-xs text-muted-foreground">
-                  {primaryGenre}
-                </p>
-              ) : null}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm">{artist.name}</p>
+                {primaryGenre ? (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {primaryGenre}
+                  </p>
+                ) : null}
+              </div>
             </>
           );
 
-          const itemClassName =
-            "min-w-0 rounded-lg border border-border/60 p-2 sm:p-3";
-
-          return spotifyUrl ? (
-            <Link
-              key={artist.id}
-              href={spotifyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(itemClassName, "transition-colors hover:bg-muted/40")}
-            >
-              {card}
-            </Link>
-          ) : (
-            <div key={artist.id} className={itemClassName}>
-              {card}
-            </div>
+          return (
+            <li key={artist.id} className="min-w-0">
+              {spotifyUrl ? (
+                <Link
+                  href={spotifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-w-0 items-center gap-3 py-3 transition-opacity hover:opacity-80"
+                >
+                  {row}
+                </Link>
+              ) : (
+                <div className="flex min-w-0 items-center gap-3 py-3">
+                  {row}
+                </div>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
     </section>
   );
 }

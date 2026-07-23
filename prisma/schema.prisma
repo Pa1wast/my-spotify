@@ -25,5 +25,38 @@ model User {
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
+  playEvents PlayEvent[]
+  syncState  UserSyncState?
+
   @@map("users")
+}
+
+model PlayEvent {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  spotifyTrackId String   @map("spotify_track_id")
+  trackName      String   @map("track_name")
+  albumId        String?  @map("album_id")
+  albumName      String?  @map("album_name")
+  artistNames    String   @map("artist_names")
+  playedAt       DateTime @map("played_at")
+  contextType    String?  @map("context_type")
+  contextUri     String?  @map("context_uri")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotifyTrackId, playedAt])
+  @@index([userId, playedAt(sort: Desc)])
+  @@map("play_events")
+}
+
+model UserSyncState {
+  userId       String    @id @map("user_id")
+  lastSyncedAt DateTime? @map("last_synced_at")
+  lastCursor   String?   @map("last_cursor")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sync_states")
 }

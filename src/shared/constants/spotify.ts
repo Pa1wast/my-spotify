@@ -7,6 +7,7 @@ export const SPOTIFY_SCOPES = [
   "user-top-read",
   "user-read-recently-played",
   "playlist-read-private",
+  "user-library-read",
 ].join(" ");
 
 export const SPOTIFY_STATE_COOKIE = "spotify_oauth_state";

@@ -1,7 +1,7 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 
 const DEFAULT_PROD_SESSION_SECONDS = 90 * 24 * 60 * 60; // ~3 months
-const DEFAULT_DEV_SESSION_SECONDS = 5 * 60; // 5 minutes
+const DEFAULT_DEV_SESSION_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
 const SESSION_ABSOLUTE_SECONDS = process.env.SESSION_ABSOLUTE_SECONDS
   ? Number.parseInt(process.env.SESSION_ABSOLUTE_SECONDS, 10)

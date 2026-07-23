@@ -1,15 +1,26 @@
 # My Spotify
 
-A full-stack Next.js app for exploring and managing your music. The scaffold is ready for Auth0, Neon PostgreSQL, and future Spotify Web API integration.
+A full-stack Next.js app for exploring your Spotify listening data. Auth0 login, saved library, top artists/tracks, and forward-only play tracking.
 
 ## Stack
 
-- Next.js App Router (Server Actions + API routes)
-- TypeScript, Tailwind CSS v4, shadcn/ui
-- Prisma ORM + Neon PostgreSQL (free tier)
-- Auth0 authentication (free tier)
-- NyxUI music player component
+- Next.js App Router (Server Components + API routes)
+- TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Table, React Query
+- Prisma ORM + Neon PostgreSQL
+- Auth0 authentication
 - Named theme system (`ember` is the default theme)
+
+## App routes
+
+| Route | Description |
+|-------|-------------|
+| `/dashboard` | Overview — top tracks, artists, playlists preview |
+| `/tracks` | Saved library (paginated table) |
+| `/artists` | Top artists table with time range |
+| `/recent` | Play history tracked by the app |
+| `/settings` | Account + Spotify connection |
+
+**Desktop:** sidebar navigation. **Mobile:** bottom tab bar.
 
 ## Getting started
 
@@ -21,109 +32,76 @@ npm install
 
 ### 2. Environment variables
 
-Copy the example env file and fill in your values:
-
 ```bash
 cp .env.example .env
 ```
 
-Required for local auth/database:
+Required:
 
 - `DATABASE_URL` — Neon pooled connection string
-- `DIRECT_URL` — Neon direct connection string (for migrations)
 - `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`
 - `APP_BASE_URL` — `http://localhost:3000` locally
-- `SESSION_ABSOLUTE_SECONDS` — optional override for Auth0 session lifetime (fixed, non-rolling). Defaults to 5 minutes in development and ~90 days in production.
+- `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`
+- `CRON_SECRET` — for Vercel cron play sync (optional locally)
 
-Generate `AUTH0_SECRET`:
+Optional: `SESSION_ABSOLUTE_SECONDS` — fixed Auth0 session TTL (7 days dev / ~90 days prod by default).
 
-```bash
-openssl rand -hex 32
-```
+### Auth0 login keeps appearing or hangs
 
-### 3. Neon (free)
+- **Use Sync now** in Settings for fresh data — only use **Reconnect Spotify** when permissions changed.
+- Open the app at **`http://localhost:3000`** (not `127.0.0.1`) so cookies match `APP_BASE_URL`.
+- In [Auth0 Dashboard](https://manage.auth0.com) → your app → **Allowed Callback URLs**, include:
+  - `http://localhost:3000/auth/callback`
+- If Accept on the Auth0 screen never finishes, clear site cookies for `localhost` and Auth0, then log in again.
+- Dev sessions last **7 days** by default (was 5 minutes). Set `SESSION_ABSOLUTE_SECONDS` in `.env` if you need a different TTL.
 
-1. Create a free project at [neon.tech](https://neon.tech)
-2. Copy the pooled and direct PostgreSQL connection strings
-3. Paste them into `.env` as `DATABASE_URL` and `DIRECT_URL`
-4. Apply the schema:
+### 3. Database
 
 ```bash
 npm run db:push
 ```
 
-### 4. Auth0 (free)
-
-1. Create a free Auth0 account and tenant
-2. Create a **Regular Web Application** (Token Endpoint Auth Method: `client_secret_post`)
-3. In Application → Settings, configure:
-
-| Field | Local value |
-|-------|-------------|
-| Allowed Callback URLs | `http://localhost:3000/auth/callback` |
-| Allowed Logout URLs | `http://localhost:3000` |
-| Allowed Web Origins | `http://localhost:3000` |
-
-4. Copy domain, client ID, and client secret into `.env` (see `.env.example`)
-5. Generate `AUTH0_SECRET` with `openssl rand -hex 32` if needed
-
-For production on Vercel, add your deployment URL with the same paths (e.g. `https://your-app.vercel.app/auth/callback`) and set `APP_BASE_URL` to that URL.
-
-### 5. Run locally
+### 4. Run locally
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Unauthenticated visitors are redirected to Auth0 login; after login you land on `/dashboard`.
+Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to Auth0, then `/dashboard`.
+
+## Spotify scopes
+
+The app requests:
+
+- `user-read-email`, `user-read-private`
+- `user-top-read`
+- `user-read-recently-played`
+- `playlist-read-private`
+- `user-library-read` (saved tracks page)
+
+After scope changes, **reconnect Spotify** from Settings or the connect card.
+
+## Play tracking
+
+Play history is **forward-only**: the app polls Spotify's recently-played endpoint on a schedule and stores new events in Neon. It does not backfill your full Spotify history.
+
+- Manual sync: opening `/recent`
+- Automatic sync: Vercel cron every 30 minutes (`vercel.json`) using `CRON_SECRET`
+
+## Deployment (Vercel)
+
+1. Push to GitHub and import in Vercel
+2. Set all env vars from `.env.example` including `CRON_SECRET`
+3. Run `npm run db:push` against your Neon database
+4. Redeploy after env changes
 
 ## Project structure
 
 ```
 src/
-├── app/                 # App Router routes (thin wrappers)
-├── features/            # Feature modules (auth, dashboard, spotify, player, ...)
-├── shared/              # Shared UI, lib, constants, types
-├── layouts/
-└── providers/           # Theme, React Query, Auth0 providers
+├── app/(protected)/     # Dashboard, tracks, artists, recent, settings
+├── features/            # dashboard, tracks, artists, recent, settings, spotify, listening
+├── layouts/             # AppShell, sidebar, bottom nav
+├── shared/              # UI, data-table, services, lib
+└── providers/
 ```
-
-## Deployment (Vercel Hobby — free)
-
-1. Push this repo to GitHub
-2. Import the repo in [Vercel](https://vercel.com)
-3. Add the same environment variables from `.env.example`
-4. Deploy
-
-Prisma client generation runs automatically via `postinstall` and `build`.
-
-## Spotify Web API
-
-1. Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Add redirect URIs:
-   - `http://127.0.0.1:3000/api/spotify/callback` (local — not `localhost`)
-   - `https://your-vercel-url.vercel.app/api/spotify/callback`
-3. Add your Spotify account under **User Management** (Development mode)
-4. Set env vars locally and on Vercel:
-
-```bash
-SPOTIFY_CLIENT_ID=your-client-id
-SPOTIFY_CLIENT_SECRET=your-client-secret
-SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/api/spotify/callback
-```
-
-On Vercel, use your production URL for `SPOTIFY_REDIRECT_URI`.
-
-5. Apply the database schema after pulling Spotify changes:
-
-```bash
-npm run db:push
-```
-
-6. Log in with Auth0, click **Connect Spotify**, then view your dashboard at `/dashboard`.
-
-**Scopes:** The app requests `user-read-email`, `user-read-private`, `user-top-read`, `user-read-recently-played`, and `playlist-read-private`. If scopes change, disconnect and reconnect Spotify so the new permissions are granted.
-
-## Agent skills & rules
-
-This repo includes Cursor rules and skills adapted from the Edinburgh Arrivals TMS frontend, plus Prisma and Auth0 agent skills under `.agents/skills/`.

@@ -56,14 +56,11 @@ export function SpotifyFlashMessage() {
     return null;
   }
 
-  const styles =
-    message.tone === "success"
-      ? "border-primary/30 bg-primary/10 text-primary"
-      : "border-destructive/30 bg-destructive/10 text-destructive";
-
   return (
     <p
-      className={`min-w-0 break-words rounded-lg border px-4 py-3 text-sm ${styles}`}
+      className={`min-w-0 border-b border-border pb-4 text-sm ${
+        message.tone === "error" ? "text-destructive" : "text-muted-foreground"
+      }`}
       role="status"
     >
       {message.text}

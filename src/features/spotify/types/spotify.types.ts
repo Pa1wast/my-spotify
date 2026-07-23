@@ -39,8 +39,9 @@ export interface SpotifyTopTrack {
   name: string;
   duration_ms: number;
   album: {
+    id?: string;
     name: string;
-    images: SpotifyImage[];
+    images?: SpotifyImage[];
   };
   artists: Array<{ name: string }>;
   external_urls: SpotifyExternalUrls;
@@ -76,8 +77,38 @@ export interface SpotifyPlaylistsResponse {
 export interface SpotifyRecentlyPlayedItem {
   played_at: string;
   track: SpotifyTopTrack;
+  context?: {
+    type?: string;
+    uri?: string;
+    external_urls?: SpotifyExternalUrls;
+  } | null;
 }
 
 export interface SpotifyRecentlyPlayedResponse {
   items: SpotifyRecentlyPlayedItem[];
+  cursors?: {
+    after: string | null;
+    before: string | null;
+  };
+  next: string | null;
+  total: number;
+}
+
+export interface SpotifySavedTrackItem {
+  added_at: string;
+  track: SpotifyTopTrack & {
+    album: {
+      id?: string;
+      name: string;
+      images?: SpotifyImage[];
+    };
+    artists: Array<{ id?: string; name: string }>;
+  };
+}
+
+export interface SpotifySavedTracksResponse {
+  items: SpotifySavedTrackItem[];
+  total: number;
+  limit: number;
+  offset: number;
 }

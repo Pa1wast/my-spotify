@@ -27,12 +27,12 @@ export function PlaylistsPreviewCard({
   total,
 }: PlaylistsPreviewCardProps) {
   return (
-    <section className="min-w-0 w-full overflow-hidden rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-      <div className="flex min-w-0 items-center justify-between gap-3">
-        <h2 className="min-w-0 truncate text-lg font-medium">Your playlists</h2>
-        <span className="shrink-0 text-xs text-muted-foreground">{total} total</span>
+    <section className="min-w-0 w-full">
+      <div className="flex items-baseline justify-between border-b border-border pb-2">
+        <h2 className="text-sm font-medium">Your playlists</h2>
+        <span className="text-xs text-muted-foreground">{total} total</span>
       </div>
-      <ul className="mt-4 min-w-0 space-y-3">
+      <ul className="min-w-0 divide-y divide-border">
         {playlists.map((playlist) => {
           const image = playlist.images?.[0]?.url;
           const spotifyUrl = playlist.external_urls?.spotify;
@@ -40,19 +40,19 @@ export function PlaylistsPreviewCard({
 
           const content = (
             <>
-              <div className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+              <div className="relative size-9 shrink-0 overflow-hidden rounded-sm bg-muted">
                 {image ? (
                   <Image
                     src={image}
                     alt={playlist.name}
                     fill
                     className="object-cover"
-                    sizes="44px"
+                    sizes="36px"
                   />
                 ) : null}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{playlist.name}</p>
+                <p className="truncate text-sm">{playlist.name}</p>
                 {meta ? (
                   <p className="truncate text-xs text-muted-foreground">
                     {meta}
@@ -69,12 +69,12 @@ export function PlaylistsPreviewCard({
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 transition-colors hover:bg-muted/40 sm:gap-3 sm:px-3"
+                  className="flex min-w-0 items-center gap-3 py-3 transition-opacity hover:opacity-80"
                 >
                   {content}
                 </Link>
               ) : (
-                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border/60 px-2 py-2 sm:gap-3 sm:px-3">
+                <div className="flex min-w-0 items-center gap-3 py-3">
                   {content}
                 </div>
               )}

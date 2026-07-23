@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { ConnectSpotifyCard } from "../components/connect-spotify-card";
-import { DashboardHeader } from "../components/dashboard-header";
 import { PlaylistsPreviewCard } from "../components/playlists-preview-card";
 import { RecentlyPlayedCard } from "../components/recently-played-card";
 import { SpotifyFlashMessage } from "../components/spotify-flash-message";
@@ -19,6 +19,7 @@ import {
   isSpotifyConnected,
 } from "@/features/spotify/services/spotify-user.service";
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
+import { PageHeader } from "@/shared/components/page-header";
 import { auth0 } from "@/shared/lib/auth0";
 import {
   getSpotifyErrorMessage,
@@ -57,8 +58,6 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
   const user = await getUserByAuth0Sub(session.user.sub);
   const connected = isSpotifyConnected(user);
   const activeRange = parseTimeRange(timeRange);
-  const displayName =
-    user?.spotifyDisplayName ?? session.user.name ?? session.user.email ?? "User";
 
   let topTracks: Awaited<ReturnType<typeof getSpotifyTopTracksForUser>> = null;
   let topArtists: Awaited<ReturnType<typeof getSpotifyTopArtistsForUser>> = null;
@@ -154,10 +153,9 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
 
   return (
     <div className="min-w-0 max-w-full space-y-4 overflow-x-hidden sm:space-y-6">
-      <DashboardHeader
-        userName={displayName}
-        spotifyConnected={connected}
-        spotifyDisplayName={user?.spotifyDisplayName}
+      <PageHeader
+        title="Overview"
+        description="Your listening snapshot from Spotify."
       />
 
       <Suspense fallback={null}>
@@ -178,20 +176,37 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
           ) : null}
 
           {generalError ? (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <p className="border-b border-border pb-4 text-sm text-destructive">
               {generalError}
             </p>
           ) : null}
 
           <TimeRangeTabs activeRange={activeRange} />
 
-          <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <Link href="/tracks" className="hover:text-foreground hover:underline">
+              Saved tracks
+            </Link>
+            <Link
+              href={`/artists?time_range=${activeRange}`}
+              className="hover:text-foreground hover:underline"
+            >
+              All artists
+            </Link>
+            <Link href="/recent" className="hover:text-foreground hover:underline">
+              Play history
+            </Link>
+          </div>
+
+          <div className="grid w-full min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 [&>*]:min-w-0">
             {topTracks && topTracks.length > 0 ? (
               <TopTracksCard tracks={topTracks} />
             ) : (
-              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-medium">Top tracks</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+              <section className="min-w-0 w-full">
+                <h2 className="border-b border-border pb-2 text-sm font-medium">
+                  Top tracks
+                </h2>
+                <p className="py-3 text-sm text-muted-foreground">
                   No top tracks yet. Listen on Spotify and check back later.
                 </p>
               </section>
@@ -200,9 +215,11 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
             {topArtists && topArtists.length > 0 ? (
               <TopArtistsCard artists={topArtists} />
             ) : (
-              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-medium">Top artists</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+              <section className="min-w-0 w-full">
+                <h2 className="border-b border-border pb-2 text-sm font-medium">
+                  Top artists
+                </h2>
+                <p className="py-3 text-sm text-muted-foreground">
                   No top artists yet. Listen on Spotify and check back later.
                 </p>
               </section>
@@ -211,9 +228,11 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
             {recentlyPlayed && recentlyPlayed.length > 0 ? (
               <RecentlyPlayedCard items={recentlyPlayed} />
             ) : (
-              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-medium">Recently played</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+              <section className="min-w-0 w-full">
+                <h2 className="border-b border-border pb-2 text-sm font-medium">
+                  Recently played
+                </h2>
+                <p className="py-3 text-sm text-muted-foreground">
                   {recentPanelMessage}
                 </p>
               </section>
@@ -225,9 +244,11 @@ export async function DashboardPage({ timeRange }: DashboardPageProps) {
                 total={playlists.total}
               />
             ) : (
-              <section className="min-w-0 w-full rounded-[var(--radius)] border border-border bg-card p-4 shadow-sm sm:p-6">
-                <h2 className="text-lg font-medium">Your playlists</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+              <section className="min-w-0 w-full">
+                <h2 className="border-b border-border pb-2 text-sm font-medium">
+                  Your playlists
+                </h2>
+                <p className="py-3 text-sm text-muted-foreground">
                   {playlistsPanelMessage}
                 </p>
               </section>

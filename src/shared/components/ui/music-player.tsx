@@ -50,7 +50,7 @@ const defaultTrack: Track = {
   title: "Sample Track",
   artist: "Sample Artist",
   album: "Sample Album",
-  artwork: "/placeholder.svg?height=300&width=300",
+  artwork: "/logo/logo-icon.png",
   duration: 180,
 };
 
@@ -315,7 +315,7 @@ export const MusicPlayer = ({
             className={`w-full transition-all duration-500 ${isExpanded ? "h-96" : "h-48 sm:h-60"} relative overflow-hidden`}
           >
             <Image
-              src={track.artwork || "/placeholder.svg"}
+              src={track.artwork || "/logo/logo-icon.png"}
               alt={`${track.title} by ${track.artist}`}
               fill
               loading="lazy"
@@ -574,7 +574,7 @@ export const MusicPlayer = ({
                 >
                   <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
                     <Image
-                      src={queueTrack.artwork || "/placeholder.svg"}
+                      src={queueTrack.artwork || "/logo/logo-icon.png"}
                       alt={queueTrack.title}
                       width={40}
                       height={40}

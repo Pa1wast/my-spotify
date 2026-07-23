@@ -10,14 +10,19 @@ export async function GET(request: NextRequest) {
   const session = await auth0.getSession(request);
 
   if (!session) {
+    const forceConsent = request.nextUrl.searchParams.get("consent") === "1";
+    const returnTo = forceConsent
+      ? "/dashboard?spotify=reconnect&consent=1"
+      : "/dashboard?spotify=reconnect";
     const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("returnTo", "/api/spotify/login");
+    loginUrl.searchParams.set("returnTo", returnTo);
     return NextResponse.redirect(loginUrl);
   }
 
   try {
     const state = randomBytes(32).toString("hex");
-    const authorizeUrl = buildSpotifyAuthorizeUrl(state);
+    const forceConsent = request.nextUrl.searchParams.get("consent") === "1";
+    const authorizeUrl = buildSpotifyAuthorizeUrl(state, { forceConsent });
     const response = NextResponse.redirect(authorizeUrl);
 
     response.cookies.set(SPOTIFY_STATE_COOKIE, state, {
