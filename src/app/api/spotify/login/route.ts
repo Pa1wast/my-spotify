@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { SPOTIFY_STATE_COOKIE } from "@/shared/constants/spotify";
 import { buildSpotifyAuthorizeUrl } from "@/features/spotify/services/spotify.service";
+import { createAppUrl } from "@/shared/lib/app-url";
 import { auth0 } from "@/shared/lib/auth0";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const returnTo = forceConsent
       ? "/dashboard?spotify=reconnect&consent=1"
       : "/dashboard?spotify=reconnect";
-    const loginUrl = new URL("/auth/login", request.url);
+    const loginUrl = createAppUrl("/auth/login", request.nextUrl.origin);
     loginUrl.searchParams.set("returnTo", returnTo);
     return NextResponse.redirect(loginUrl);
   }
@@ -35,6 +36,6 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/dashboard?spotify=error", request.url));
+    return NextResponse.redirect(createAppUrl("/dashboard?spotify=error"));
   }
 }

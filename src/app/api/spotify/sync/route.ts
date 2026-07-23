@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getRecentPlays } from "@/features/listening/services/play-events.service";
-import {
-  syncPlayHistoryForAllUsers,
-  syncPlayHistoryForUser,
-} from "@/features/listening/services/play-sync.service";
+import { syncSpotifyLibraryForAllUsers } from "@/features/library/services/library-sync-all.service";
+import { syncSpotifyLibraryForUser } from "@/features/library/services/library-sync.service";
 import { getUserByAuth0Sub } from "@/features/spotify/services/spotify-user.service";
 import { auth0 } from "@/shared/lib/auth0";
+import { spotifyApiMetrics } from "@/shared/lib/spotify-api-metrics";
+import { getSpotifyErrorMessage } from "@/shared/lib/spotify-http";
 
 function verifyCronSecret(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await syncPlayHistoryForAllUsers();
+  const result = await syncSpotifyLibraryForAllUsers();
   return NextResponse.json(result);
 }
 
@@ -40,6 +39,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  const result = await syncPlayHistoryForUser(user);
-  return NextResponse.json(result);
+  if (spotifyApiMetrics.isRateLimited()) {
+    return NextResponse.json(
+      {
+        message:
+          "Spotify rate limit is active. Wait about a minute, then try Save from Spotify once.",
+        metrics: spotifyApiMetrics.getSnapshot(),
+      },
+      { status: 429 },
+    );
+  }
+
+  try {
+    const result = await syncSpotifyLibraryForUser(user);
+
+    return NextResponse.json({
+      ...result,
+      metrics: spotifyApiMetrics.getSnapshot(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: getSpotifyErrorMessage(error),
+        metrics: spotifyApiMetrics.getSnapshot(),
+      },
+      { status: 500 },
+    );
+  }
 }

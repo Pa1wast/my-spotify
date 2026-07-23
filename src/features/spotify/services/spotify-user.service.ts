@@ -42,16 +42,31 @@ export async function saveSpotifyConnection(
   code: string,
 ) {
   const tokenResponse = await exchangeSpotifyCode(code);
-  const spotifyProfile = await fetchSpotifyUserProfile(tokenResponse.access_token);
-
   const expiresAt = new Date(Date.now() + tokenResponse.expires_in * 1000);
   const refreshToken = tokenResponse.refresh_token;
 
   if (!refreshToken) {
     throw new Error(
-      "Spotify did not return a refresh token. Try connecting again.",
+      "Spotify did not return a refresh token. Remove this app in Spotify account settings, then reconnect.",
     );
   }
+
+  const existingUser = await getUserByAuth0Sub(auth0Sub);
+
+  if (existingUser?.spotifyUserId) {
+    return prisma.user.update({
+      where: { auth0Sub },
+      data: {
+        spotifyAccessToken: tokenResponse.access_token,
+        spotifyRefreshToken: refreshToken,
+        spotifyTokenExpiresAt: expiresAt,
+      },
+    });
+  }
+
+  const spotifyProfile = await fetchSpotifyUserProfile(
+    tokenResponse.access_token,
+  );
 
   return prisma.user.upsert({
     where: { auth0Sub },

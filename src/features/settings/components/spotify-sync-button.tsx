@@ -4,14 +4,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useSpotifySync } from "@/features/settings/hooks/use-spotify-sync";
-import { Button } from "@/shared/components/ui/button";
+import { settingsActionLinkClass } from "@/shared/constants/settings-links";
+import { getApiErrorMessage } from "@/shared/services/axios";
 import { cn } from "@/shared/lib/utils";
 
 interface SpotifySyncButtonProps {
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function SpotifySyncButton({ className }: SpotifySyncButtonProps) {
+export function SpotifySyncButton({
+  className,
+  children,
+}: SpotifySyncButtonProps) {
   const router = useRouter();
   const sync = useSpotifySync();
   const [message, setMessage] = useState<string | null>(null);
@@ -21,7 +26,7 @@ export function SpotifySyncButton({ className }: SpotifySyncButtonProps) {
       return;
     }
 
-    const timer = window.setTimeout(() => setMessage(null), 4000);
+    const timer = window.setTimeout(() => setMessage(null), 6000);
     return () => window.clearTimeout(timer);
   }, [message]);
 
@@ -31,36 +36,43 @@ export function SpotifySyncButton({ className }: SpotifySyncButtonProps) {
         router.refresh();
 
         if (result.skipped) {
-          setMessage("Spotify is not connected. Reconnect to sync.");
+          setMessage("Spotify is not connected. Reconnect to save your library.");
           return;
         }
 
-        if (result.inserted === 0) {
-          setMessage("Already up to date.");
+        if (result.partial) {
+          const needsReconnect = result.errors.some((error) =>
+            error.toLowerCase().includes("reconnect"),
+          );
+          setMessage(
+            `Saved partially (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays. ${result.errors[0] ?? "Some sections failed."}${needsReconnect ? " Use Reconnect Spotify, then save again." : " Wait a minute if rate limited, then save again."}`,
+          );
           return;
         }
 
         setMessage(
-          `Synced ${result.inserted} new ${result.inserted === 1 ? "play" : "plays"}.`,
+          `Saved to database (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays.`,
         );
       },
-      onError: () => {
-        setMessage("Sync failed. Try again or reconnect Spotify.");
+      onError: (error) => {
+        setMessage(getApiErrorMessage(error));
       },
     });
   }
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleSync}
-        disabled={sync.isPending}
-      >
-        {sync.isPending ? "Syncing…" : "Sync now"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={sync.isPending}
+          className={settingsActionLinkClass}
+        >
+          {sync.isPending ? "Saving from Spotify…" : "Save from Spotify"}
+        </button>
+        {children}
+      </div>
       {message ? (
         <p className="text-xs text-muted-foreground" role="status">
           {message}

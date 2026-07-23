@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
+import { PlayTrackButton } from "@/features/player/components/play-track-button";
+import { savedTrackToPlayerTrack } from "@/features/player/types/player.types";
 import { useSavedTracks } from "../hooks/use-saved-tracks";
 import type { SavedTrackDto } from "../services/tracks.service";
 
-import { DataTable } from "@/shared/components/data-table/data-table";
+import { DataTable, tablePageShellClassName } from "@/shared/components/data-table/data-table";
 import { PageHeader } from "@/shared/components/page-header";
 import { formatDuration } from "@/shared/lib/format";
 
@@ -28,6 +30,16 @@ export function TracksPageClient() {
 
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: "play",
+        header: "",
+        cell: ({ row }) => (
+          <PlayTrackButton
+            track={savedTrackToPlayerTrack(row.original)}
+            queue={(data?.items ?? []).map(savedTrackToPlayerTrack)}
+          />
+        ),
+      }),
       columnHelper.display({
         id: "cover",
         header: "",
@@ -81,18 +93,18 @@ export function TracksPageClient() {
         cell: ({ getValue }) => formatDuration(getValue()),
       }),
     ],
-    [],
+    [data?.items],
   );
 
   return (
-    <div className="min-w-0">
+    <div className={tablePageShellClassName}>
       <PageHeader
         title="Tracks"
         description="Your saved library from Spotify."
       />
 
       {isError ? (
-        <p className="border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (

@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import {
-  getSpotifyTopTracksForUser,
-  getUserByAuth0Sub,
-} from "@/features/spotify/services/spotify-user.service";
+  getCachedTopTracks,
+  LIBRARY_NOT_SYNCED_STATUS,
+  libraryNotSyncedMessage,
+} from "@/features/library/services/library-cache.service";
+import { getUserByAuth0Sub } from "@/features/spotify/services/spotify-user.service";
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
 import { auth0 } from "@/shared/lib/auth0";
-import { getSpotifyErrorMessage } from "@/shared/lib/spotify-http";
+import { spotifyJsonResponse } from "@/shared/lib/spotify-api-route";
 
 function parseTimeRange(value: string | null): SpotifyTimeRange {
   if (value === "medium_term" || value === "long_term") {
@@ -15,17 +17,21 @@ function parseTimeRange(value: string | null): SpotifyTimeRange {
   return "short_term";
 }
 
+function mapWithRank<T extends { id: string }>(items: T[]) {
+  return items.map((item, index) => ({ rank: index + 1, ...item }));
+}
+
 export async function GET(request: NextRequest) {
   const session = await auth0.getSession(request);
 
   if (!session) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return spotifyJsonResponse({ message: "Unauthorized" }, { status: 401 });
   }
 
   const user = await getUserByAuth0Sub(session.user.sub);
 
   if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    return spotifyJsonResponse({ message: "User not found" }, { status: 404 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -35,33 +41,18 @@ export async function GET(request: NextRequest) {
     50,
   );
 
-  try {
-    const tracks = await getSpotifyTopTracksForUser(user, timeRange);
+  const cached = await getCachedTopTracks(user.id, timeRange);
 
-    if (!tracks) {
-      return NextResponse.json(
-        { message: "Spotify not connected" },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json({
-      items: tracks.slice(0, limit).map((track, index) => ({
-        rank: index + 1,
-        id: track.id,
-        name: track.name,
-        album: track.album.name,
-        albumImage: track.album.images?.[0]?.url ?? null,
-        artists: track.artists.map((artist) => artist.name).join(", "),
-        durationMs: track.duration_ms,
-        spotifyUrl: track.external_urls?.spotify ?? null,
-      })),
-      timeRange,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { message: getSpotifyErrorMessage(error) },
-      { status: 500 },
+  if (!cached) {
+    return spotifyJsonResponse(
+      { message: libraryNotSyncedMessage(), code: "LIBRARY_NOT_SYNCED" },
+      { status: LIBRARY_NOT_SYNCED_STATUS },
     );
   }
+
+  return spotifyJsonResponse({
+    items: mapWithRank(cached.data.slice(0, limit)),
+    timeRange,
+    syncedAt: cached.syncedAt.toISOString(),
+  });
 }

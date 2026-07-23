@@ -1,12 +1,28 @@
+import { cn } from "@/shared/lib/utils";
+
 interface PageHeaderProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  compact?: boolean;
+  className?: string;
 }
 
-export function PageHeader({ title, description, action }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  action,
+  compact = false,
+  className,
+}: PageHeaderProps) {
   return (
-    <div className="mb-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div
+      className={cn(
+        "flex shrink-0 min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between",
+        compact ? "mb-4" : "mb-6",
+        className,
+      )}
+    >
       <div className="min-w-0">
         <h1 className="text-xl font-medium tracking-tight">{title}</h1>
         {description ? (

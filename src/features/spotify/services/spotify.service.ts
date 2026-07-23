@@ -5,7 +5,7 @@ import {
   getSpotifyConfig,
   type SpotifyTimeRange,
 } from "@/shared/constants/spotify";
-import { spotifyRequest } from "@/shared/lib/spotify-http";
+import { spotifyRequest, type SpotifyRequestOptions } from "@/shared/lib/spotify-http";
 
 import type {
   SpotifyPlaylistsResponse,
@@ -96,18 +96,22 @@ export async function fetchSpotifyTopTracks(
   accessToken: string,
   timeRange: SpotifyTimeRange = "short_term",
   limit = 10,
+  requestOptions?: SpotifyRequestOptions,
 ) {
-  const response = await spotifyRequest<SpotifyTopTracksResponse>({
-    method: "GET",
-    url: `${SPOTIFY_API_URL}/me/top/tracks`,
-    params: {
-      limit,
-      time_range: timeRange,
+  const response = await spotifyRequest<SpotifyTopTracksResponse>(
+    {
+      method: "GET",
+      url: `${SPOTIFY_API_URL}/me/top/tracks`,
+      params: {
+        limit,
+        time_range: timeRange,
+      },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+    requestOptions,
+  );
 
   return response.items;
 }
@@ -116,18 +120,22 @@ export async function fetchSpotifyTopArtists(
   accessToken: string,
   timeRange: SpotifyTimeRange = "short_term",
   limit = 10,
+  requestOptions?: SpotifyRequestOptions,
 ) {
-  const response = await spotifyRequest<SpotifyTopArtistsResponse>({
-    method: "GET",
-    url: `${SPOTIFY_API_URL}/me/top/artists`,
-    params: {
-      limit,
-      time_range: timeRange,
+  const response = await spotifyRequest<SpotifyTopArtistsResponse>(
+    {
+      method: "GET",
+      url: `${SPOTIFY_API_URL}/me/top/artists`,
+      params: {
+        limit,
+        time_range: timeRange,
+      },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+    requestOptions,
+  );
 
   return response.items;
 }
@@ -148,44 +156,60 @@ export async function fetchSpotifyRecentlyPlayedWithCursor(
   accessToken: string,
   limit = 50,
   after?: string,
+  requestOptions?: SpotifyRequestOptions,
 ) {
-  return spotifyRequest<SpotifyRecentlyPlayedResponse>({
-    method: "GET",
-    url: `${SPOTIFY_API_URL}/me/player/recently-played`,
-    params: {
-      limit,
-      ...(after ? { after } : {}),
+  return spotifyRequest<SpotifyRecentlyPlayedResponse>(
+    {
+      method: "GET",
+      url: `${SPOTIFY_API_URL}/me/player/recently-played`,
+      params: {
+        limit,
+        ...(after ? { after } : {}),
+      },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+    requestOptions,
+  );
 }
 
 export async function fetchSpotifySavedTracks(
   accessToken: string,
   limit = 20,
   offset = 0,
+  requestOptions?: SpotifyRequestOptions,
 ) {
-  return spotifyRequest<SpotifySavedTracksResponse>({
-    method: "GET",
-    url: `${SPOTIFY_API_URL}/me/tracks`,
-    params: { limit, offset },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  return spotifyRequest<SpotifySavedTracksResponse>(
+    {
+      method: "GET",
+      url: `${SPOTIFY_API_URL}/me/tracks`,
+      params: { limit, offset },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+    requestOptions,
+  );
 }
 
-export async function fetchSpotifyPlaylists(accessToken: string, limit = 6) {
-  const response = await spotifyRequest<SpotifyPlaylistsResponse>({
-    method: "GET",
-    url: `${SPOTIFY_API_URL}/me/playlists`,
-    params: { limit },
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+export async function fetchSpotifyPlaylists(
+  accessToken: string,
+  limit = 50,
+  offset = 0,
+  requestOptions?: SpotifyRequestOptions,
+) {
+  const response = await spotifyRequest<SpotifyPlaylistsResponse>(
+    {
+      method: "GET",
+      url: `${SPOTIFY_API_URL}/me/playlists`,
+      params: { limit, offset },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+    requestOptions,
+  );
 
   return {
     ...response,
@@ -194,4 +218,47 @@ export async function fetchSpotifyPlaylists(accessToken: string, limit = 6) {
         playlist != null && typeof playlist.id === "string",
     ),
   };
+}
+
+export interface StartPlaybackBody {
+  uris?: string[];
+  context_uri?: string;
+  offset?: { position?: number; uri?: string };
+  position_ms?: number;
+}
+
+export async function startSpotifyPlayback(
+  accessToken: string,
+  deviceId: string,
+  body: StartPlaybackBody,
+) {
+  return spotifyRequest<void>({
+    method: "PUT",
+    url: `${SPOTIFY_API_URL}/me/player/play`,
+    params: { device_id: deviceId },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    data: body,
+  });
+}
+
+export async function transferSpotifyPlayback(
+  accessToken: string,
+  deviceId: string,
+  play = false,
+) {
+  return spotifyRequest<void>({
+    method: "PUT",
+    url: `${SPOTIFY_API_URL}/me/player`,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    data: {
+      device_ids: [deviceId],
+      play,
+    },
+  });
 }

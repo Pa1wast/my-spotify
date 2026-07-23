@@ -8,6 +8,9 @@ export const SPOTIFY_SCOPES = [
   "user-read-recently-played",
   "playlist-read-private",
   "user-library-read",
+  "streaming",
+  "user-read-playback-state",
+  "user-modify-playback-state",
 ].join(" ");
 
 export const SPOTIFY_STATE_COOKIE = "spotify_oauth_state";
@@ -22,6 +25,12 @@ export function getSpotifyConfig() {
   if (!clientId || !clientSecret || !redirectUri) {
     throw new Error(
       "Missing Spotify configuration. Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REDIRECT_URI.",
+    );
+  }
+
+  if (!redirectUri.endsWith("/api/spotify/callback")) {
+    throw new Error(
+      "SPOTIFY_REDIRECT_URI must point to /api/spotify/callback (e.g. http://localhost:3000/api/spotify/callback).",
     );
   }
 

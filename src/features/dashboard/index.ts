@@ -1,1 +1,1 @@
-export { DashboardPage } from "./pages/dashboard-page";
+export { DashboardPageClient } from "./pages/dashboard-page";

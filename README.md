@@ -49,9 +49,9 @@ Optional: `SESSION_ABSOLUTE_SECONDS` — fixed Auth0 session TTL (7 days dev / ~
 ### Auth0 login keeps appearing or hangs
 
 - **Use Sync now** in Settings for fresh data — only use **Reconnect Spotify** when permissions changed.
-- Open the app at **`http://localhost:3000`** (not `127.0.0.1`) so cookies match `APP_BASE_URL`.
+- Open the app at **`http://127.0.0.1:3000`** — do not mix `localhost` and `127.0.0.1` (Auth0 state cookies are host-specific).
 - In [Auth0 Dashboard](https://manage.auth0.com) → your app → **Allowed Callback URLs**, include:
-  - `http://localhost:3000/auth/callback`
+  - `http://127.0.0.1:3000/auth/callback`
 - If Accept on the Auth0 screen never finishes, clear site cookies for `localhost` and Auth0, then log in again.
 - Dev sessions last **7 days** by default (was 5 minutes). Set `SESSION_ABSOLUTE_SECONDS` in `.env` if you need a different TTL.
 
@@ -78,15 +78,28 @@ The app requests:
 - `user-read-recently-played`
 - `playlist-read-private`
 - `user-library-read` (saved tracks page)
+- `streaming`, `user-read-playback-state`, `user-modify-playback-state` (in-app playback)
 
-After scope changes, **reconnect Spotify** from Settings or the connect card.
+After scope changes, **Reconnect Spotify** from Settings (use the reconnect link with consent).
+
+## In-app playback
+
+Playback uses the [Spotify Web Playback SDK](https://developer.spotify.com/documentation/web-playback-sdk) and requires **Spotify Premium**.
+
+1. Connect Spotify and **Reconnect** once after playback scopes were added.
+2. Use play buttons on Tracks or the Overview top/recent lists.
+3. A compact player bar stays visible while a track is playing; tap it to expand full controls.
+
+Playback does not call Spotify for browsing — only when you press play or use player controls.
 
 ## Play tracking
 
-Play history is **forward-only**: the app polls Spotify's recently-played endpoint on a schedule and stores new events in Neon. It does not backfill your full Spotify history.
+Play history is **forward-only**: the app polls Spotify's recently-played endpoint when you **Save from Spotify** in Settings and stores events in Neon. It does not backfill your full Spotify history.
 
-- Manual sync: opening `/recent`
-- Automatic sync: Vercel cron every 30 minutes (`vercel.json`) using `CRON_SECRET`
+Browsing (Overview, Tracks, Artists, Playlists) reads from your **database cache** — not Spotify — so you avoid rate limits during normal use.
+
+- Manual import: **Settings → Save from Spotify**
+- Automatic import: Vercel cron every 30 minutes (`vercel.json`) using `CRON_SECRET`
 
 ## Deployment (Vercel)
 

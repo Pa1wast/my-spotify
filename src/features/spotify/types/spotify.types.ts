@@ -96,14 +96,14 @@ export interface SpotifyRecentlyPlayedResponse {
 
 export interface SpotifySavedTrackItem {
   added_at: string;
-  track: SpotifyTopTrack & {
+  track: (SpotifyTopTrack & {
     album: {
       id?: string;
       name: string;
       images?: SpotifyImage[];
     };
     artists: Array<{ id?: string; name: string }>;
-  };
+  }) | null;
 }
 
 export interface SpotifySavedTracksResponse {

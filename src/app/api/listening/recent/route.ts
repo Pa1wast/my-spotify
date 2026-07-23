@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     items: data.items.map((item) => ({
       id: item.id,
+      spotifyTrackId: item.spotifyTrackId,
       trackName: item.trackName,
       albumName: item.albumName,
       artistNames: item.artistNames,

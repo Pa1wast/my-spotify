@@ -38,11 +38,22 @@ export interface MusicPlayerProps {
   className?: string;
   autoPlay?: boolean;
   showEqualizer?: boolean;
+  controlled?: boolean;
+  isPlaying?: boolean;
+  currentTime?: number;
+  volume?: number;
+  isMuted?: boolean;
   onPlayPause?: (isPlaying: boolean) => void;
+  onTogglePlay?: () => void;
   onTimeChange?: (time: number) => void;
+  onSeek?: (time: number) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
   onTrackEnd?: () => void;
   onTrackChange?: (track: Track, index: number) => void;
   onVolumeChange?: (volume: number) => void;
+  onMuteToggle?: () => void;
+  hideExpandButton?: boolean;
 }
 
 const defaultTrack: Track = {
@@ -63,17 +74,61 @@ export const MusicPlayer = ({
   className = "",
   autoPlay = false,
   showEqualizer = true,
+  controlled = false,
+  isPlaying: controlledIsPlaying,
+  currentTime: controlledCurrentTime,
+  volume: controlledVolume,
+  isMuted: controlledIsMuted,
   onPlayPause,
+  onTogglePlay,
   onTimeChange,
+  onSeek,
+  onNext,
+  onPrevious,
   onTrackEnd,
   onTrackChange,
   onVolumeChange,
+  onMuteToggle,
+  hideExpandButton = false,
 }: MusicPlayerProps) => {
   const track = currentTrack || defaultTrack;
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
-  const [currentTime, setCurrentTime] = useState(initialTime);
-  const [volume, setVolume] = useState(75);
-  const [isMuted, setIsMuted] = useState(false);
+  const [internalIsPlaying, setInternalIsPlaying] = useState(autoPlay);
+  const [internalCurrentTime, setInternalCurrentTime] = useState(initialTime);
+  const [internalVolume, setInternalVolume] = useState(75);
+  const [internalIsMuted, setInternalIsMuted] = useState(false);
+  const isPlaying = controlled ? (controlledIsPlaying ?? false) : internalIsPlaying;
+  const currentTime = controlled
+    ? (controlledCurrentTime ?? 0)
+    : internalCurrentTime;
+  const volume = controlled ? (controlledVolume ?? 75) : internalVolume;
+  const isMuted = controlled ? (controlledIsMuted ?? false) : internalIsMuted;
+  const setCurrentTime = controlled
+    ? (value: number | ((prev: number) => number)) => {
+        const next =
+          typeof value === "function" ? value(controlledCurrentTime ?? 0) : value;
+        if (onSeek) {
+          onSeek(next);
+        } else if (onTimeChange) {
+          onTimeChange(next);
+        }
+      }
+    : setInternalCurrentTime;
+  const setVolume = controlled
+    ? (value: number | ((prev: number) => number)) => {
+        const next =
+          typeof value === "function" ? value(controlledVolume ?? 75) : value;
+        if (onVolumeChange) {
+          onVolumeChange(next);
+        }
+      }
+    : setInternalVolume;
+  const setIsMuted = controlled
+    ? () => {
+        if (onMuteToggle) {
+          onMuteToggle();
+        }
+      }
+    : setInternalIsMuted;
   const [liked, setLiked] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
@@ -93,6 +148,53 @@ export const MusicPlayer = ({
 
   // Keyboard shortcuts
   useEffect(() => {
+    if (!controlled) {
+      return;
+    }
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
+      switch (e.code) {
+        case "Space":
+          e.preventDefault();
+          onTogglePlay?.();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          onSeek?.(Math.max(0, currentTime - 10));
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          onSeek?.(Math.min(track.duration, currentTime + 10));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          onVolumeChange?.(Math.min(100, volume + 10));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          onVolumeChange?.(Math.max(0, volume - 10));
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [
+    controlled,
+    currentTime,
+    onSeek,
+    onTogglePlay,
+    onVolumeChange,
+    track.duration,
+    volume,
+  ]);
+
+  useEffect(() => {
+    if (controlled) {
+      return;
+    }
+
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
       switch (e.code) {
@@ -102,26 +204,26 @@ export const MusicPlayer = ({
           break;
         case "ArrowLeft":
           e.preventDefault();
-          setCurrentTime((prev) => Math.max(0, prev - 10));
+          setInternalCurrentTime((prev) => Math.max(0, prev - 10));
           break;
         case "ArrowRight":
           e.preventDefault();
-          setCurrentTime((prev) => Math.min(track.duration, prev + 10));
+          setInternalCurrentTime((prev) => Math.min(track.duration, prev + 10));
           break;
         case "ArrowUp":
           e.preventDefault();
-          setVolume((prev) => Math.min(100, prev + 10));
+          setInternalVolume((prev) => Math.min(100, prev + 10));
           break;
         case "ArrowDown":
           e.preventDefault();
-          setVolume((prev) => Math.max(0, prev - 10));
+          setInternalVolume((prev) => Math.max(0, prev - 10));
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [track.duration]);
+  }, [controlled, track.duration]);
 
   // Equalizer animation
   useEffect(() => {
@@ -140,10 +242,14 @@ export const MusicPlayer = ({
 
   // Time progression
   useEffect(() => {
+    if (controlled) {
+      return;
+    }
+
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
-        setCurrentTime((time) => {
+        setInternalCurrentTime((time) => {
           if (time >= track.duration) {
             handleTrackEnd();
             return 0;
@@ -157,7 +263,7 @@ export const MusicPlayer = ({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isPlaying, track.duration, onTimeChange]);
+  }, [controlled, isPlaying, track.duration, onTimeChange]);
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -166,8 +272,13 @@ export const MusicPlayer = ({
   };
 
   const togglePlay = () => {
+    if (controlled) {
+      onTogglePlay?.();
+      return;
+    }
+
     const newPlayState = !isPlaying;
-    setIsPlaying(newPlayState);
+    setInternalIsPlaying(newPlayState);
     if (onPlayPause) onPlayPause(newPlayState);
   };
 
@@ -183,7 +294,9 @@ export const MusicPlayer = ({
         onTrackChange(queue[nextIndex], nextIndex);
       }
     } else {
-      setIsPlaying(false);
+      if (!controlled) {
+        setInternalIsPlaying(false);
+      }
     }
     if (onTrackEnd) onTrackEnd();
   };
@@ -194,7 +307,11 @@ export const MusicPlayer = ({
     const clickPosition = e.clientX - left;
     const percentage = Math.max(0, Math.min(1, clickPosition / width));
     const newTime = Math.floor(track.duration * percentage);
-    setCurrentTime(newTime);
+    if (controlled) {
+      onSeek?.(newTime);
+      return;
+    }
+    setInternalCurrentTime(newTime);
     if (onTimeChange) onTimeChange(newTime);
   };
 
@@ -213,13 +330,22 @@ export const MusicPlayer = ({
     const clickPosition = e.clientY - top;
     const percentage = Math.max(0, Math.min(1, 1 - clickPosition / height));
     const newVolume = Math.floor(percentage * 100);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
+    if (controlled) {
+      onVolumeChange?.(newVolume);
+      return;
+    }
+    setInternalVolume(newVolume);
+    setInternalIsMuted(newVolume === 0);
     if (onVolumeChange) onVolumeChange(newVolume);
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    if (controlled) {
+      onMuteToggle?.();
+      return;
+    }
+
+    setInternalIsMuted(!isMuted);
     if (onVolumeChange) onVolumeChange(isMuted ? volume : 0);
   };
 
@@ -235,6 +361,15 @@ export const MusicPlayer = ({
   };
 
   const skipTrack = (direction: "next" | "prev") => {
+    if (controlled) {
+      if (direction === "next") {
+        onNext?.();
+      } else {
+        onPrevious?.();
+      }
+      return;
+    }
+
     if (!queue.length) return;
 
     let nextIndex;
@@ -338,16 +473,18 @@ export const MusicPlayer = ({
             )}
 
             {/* Expand Button */}
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="absolute top-2 sm:top-4 right-2 sm:right-4 p-1.5 sm:p-2 bg-black/40 rounded-full backdrop-blur-sm hover:bg-black/60 transition-colors"
-            >
-              {isExpanded ? (
-                <Minimize2 className="h-3 w-3 sm:h-4 sm:w-4" />
-              ) : (
-                <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
-              )}
-            </button>
+            {!hideExpandButton ? (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="absolute top-2 sm:top-4 right-2 sm:right-4 p-1.5 sm:p-2 bg-black/40 rounded-full backdrop-blur-sm hover:bg-black/60 transition-colors"
+              >
+                {isExpanded ? (
+                  <Minimize2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                ) : (
+                  <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                )}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -455,11 +592,11 @@ export const MusicPlayer = ({
               <button
                 onClick={() => skipTrack("prev")}
                 className={`p-1.5 sm:p-2 transition-all hover:scale-110 ${
-                  queue.length > 0
+                  controlled || queue.length > 0
                     ? "text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
                     : "text-black/40 dark:text-white/40 cursor-not-allowed"
                 }`}
-                disabled={queue.length === 0}
+                disabled={!controlled && queue.length === 0}
               >
                 <SkipBack className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
@@ -478,11 +615,11 @@ export const MusicPlayer = ({
               <button
                 onClick={() => skipTrack("next")}
                 className={`p-1.5 sm:p-2 transition-all hover:scale-110 ${
-                  queue.length > 0
+                  controlled || queue.length > 0
                     ? "text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
                     : "text-black/40 dark:text-white/40 cursor-not-allowed"
                 }`}
-                disabled={queue.length === 0}
+                disabled={!controlled && queue.length === 0}
               >
                 <SkipForward className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>

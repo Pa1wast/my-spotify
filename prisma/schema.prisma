@@ -27,6 +27,7 @@ model User {
 
   playEvents PlayEvent[]
   syncState  UserSyncState?
+  libraryCaches SpotifyLibraryCache[]
 
   @@map("users")
 }
@@ -52,11 +53,28 @@ model PlayEvent {
 }
 
 model UserSyncState {
-  userId       String    @id @map("user_id")
-  lastSyncedAt DateTime? @map("last_synced_at")
-  lastCursor   String?   @map("last_cursor")
+  userId             String    @id @map("user_id")
+  lastSyncedAt       DateTime? @map("last_synced_at")
+  lastLibrarySyncAt  DateTime? @map("last_library_sync_at")
+  lastCursor         String?   @map("last_cursor")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_sync_states")
+}
+
+model SpotifyLibraryCache {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  cacheKey  String   @map("cache_key")
+  data      Json
+  syncedAt  DateTime @map("synced_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cacheKey])
+  @@index([userId])
+  @@map("spotify_library_caches")
 }

@@ -1,9 +1,10 @@
 import { apiClient } from "@/shared/services/axios";
 
-export { triggerPlaySync } from "@/features/listening/services/sync.service";
+export { triggerLibrarySync } from "@/features/listening/services/sync.service";
 
 export interface RecentPlayRow {
   id: string;
+  spotifyTrackId: string;
   trackName: string;
   albumName: string | null;
   artistNames: string;

@@ -9,7 +9,10 @@ import { useTopArtists } from "../hooks/use-top-artists";
 import type { TopArtistRow } from "../services/artists.service";
 
 import { TimeRangeTabs } from "@/features/dashboard/components/time-range-tabs";
-import { DataTable } from "@/shared/components/data-table/data-table";
+import {
+  DataTable,
+  tablePageShellWithTabsClassName,
+} from "@/shared/components/data-table/data-table";
 import { PageHeader } from "@/shared/components/page-header";
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
 
@@ -82,13 +85,13 @@ export function ArtistsPageClient({
   );
 
   return (
-    <div className="min-w-0">
+    <div className={tablePageShellWithTabsClassName}>
       <PageHeader
         title="Artists"
         description="Your top artists for the selected period."
       />
 
-      <div className="mb-4">
+      <div className="mb-4 shrink-0">
         <TimeRangeTabs
           activeRange={timeRange}
           onChange={setTimeRange}
@@ -97,7 +100,7 @@ export function ArtistsPageClient({
       </div>
 
       {isError ? (
-        <p className="border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (

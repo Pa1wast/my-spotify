@@ -3,13 +3,10 @@
 import { useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import {
-  usePlaySyncOnMount,
-  useRecentPlays,
-} from "../hooks/use-recent-plays";
+import { useRecentPlays } from "../hooks/use-recent-plays";
 import type { RecentPlayRow } from "../services/recent.service";
 
-import { DataTable } from "@/shared/components/data-table/data-table";
+import { DataTable, tablePageShellClassName } from "@/shared/components/data-table/data-table";
 import { PageHeader } from "@/shared/components/page-header";
 import { formatRelativeTime } from "@/shared/lib/format";
 
@@ -17,7 +14,6 @@ const columnHelper = createColumnHelper<RecentPlayRow>();
 
 export function RecentPageClient() {
   const [page, setPage] = useState(1);
-  const sync = usePlaySyncOnMount();
   const { data, isLoading, isError, error } = useRecentPlays(page);
 
   const columns = useMemo(
@@ -58,25 +54,22 @@ export function RecentPageClient() {
   );
 
   return (
-    <div className="min-w-0">
+    <div className={tablePageShellClassName}>
       <PageHeader
         title="Recent"
-        description="Plays tracked by this app since sync started."
+        description="Plays stored in your database. Save from Spotify in Settings to import new plays."
+        compact
       />
 
-      {sync.isPending ? (
-        <p className="mb-4 text-xs text-muted-foreground">Syncing latest plays…</p>
-      ) : null}
-
       {data?.total === 0 && !isLoading ? (
-        <p className="mb-4 border-b border-border pb-4 text-sm text-muted-foreground">
-          No plays stored yet. Listen on Spotify and return here — we sync on
-          load and every 30 minutes.
+        <p className="mb-4 shrink-0 border-b border-border pb-4 text-sm text-muted-foreground">
+          No plays stored yet. Use Save from Spotify in Settings after listening
+          on Spotify.
         </p>
       ) : null}
 
       {isError ? (
-        <p className="border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (

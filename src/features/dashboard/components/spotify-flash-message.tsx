@@ -3,7 +3,27 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const AUTO_DISMISS_MS = 4000;
+import {
+  getSpotifyConnectErrorMessage,
+  type SpotifyConnectErrorReason,
+} from "@/shared/constants/spotify-connect-errors";
+
+const AUTO_DISMISS_MS = 6000;
+
+function parseSpotifyConnectReason(
+  value: string | null,
+): SpotifyConnectErrorReason {
+  switch (value) {
+    case "rate_limit":
+    case "state":
+    case "denied":
+    case "refresh_token":
+    case "redirect_uri":
+      return value;
+    default:
+      return "generic";
+  }
+}
 
 export function SpotifyFlashMessage() {
   const searchParams = useSearchParams();
@@ -22,8 +42,11 @@ export function SpotifyFlashMessage() {
         tone: "success",
       });
     } else if (spotify === "error") {
+      const reason = parseSpotifyConnectReason(
+        searchParams.get("spotify_reason"),
+      );
       setMessage({
-        text: "Spotify connection failed. Check your redirect URI and try again.",
+        text: getSpotifyConnectErrorMessage(reason),
         tone: "error",
       });
     }

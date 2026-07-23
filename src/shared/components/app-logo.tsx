@@ -12,8 +12,8 @@ const LOGO_ASSETS = {
   },
   full: {
     src: "/logo/logo-full.png",
-    width: 445,
-    height: 160,
+    width: 698,
+    height: 211,
     alt: "My Spotify",
   },
 } as const;
@@ -24,7 +24,7 @@ interface AppLogoProps {
   variant?: AppLogoVariant;
   className?: string;
   href?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "sidebar";
   priority?: boolean;
 }
 
@@ -35,9 +35,10 @@ const ICON_SIZE_CLASSES = {
 } as const;
 
 const FULL_SIZE_CLASSES = {
-  sm: "h-6 w-auto",
-  md: "h-8 w-auto",
-  lg: "h-10 w-auto",
+  sm: "h-7 w-auto",
+  md: "h-9 w-auto",
+  lg: "h-11 w-auto",
+  sidebar: "h-auto w-full max-w-full",
 } as const;
 
 export function AppLogo({

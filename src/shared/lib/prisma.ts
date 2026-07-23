@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const REQUIRED_DELEGATES = ["userSyncState", "playEvent"] as const;
+const REQUIRED_DELEGATES = ["userSyncState", "playEvent", "spotifyLibraryCache"] as const;
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;

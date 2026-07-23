@@ -1,0 +1,2 @@
+export const settingsActionLinkClass =
+  "text-sm underline underline-offset-4 hover:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground";
