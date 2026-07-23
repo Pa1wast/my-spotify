@@ -70,17 +70,18 @@ export function SpotifyApiMetricsDisplay({
     return null;
   }
 
+  const windowSeconds = Math.round(metrics.windowMs / 1000);
   const rateLimitCountdown =
     remainingMs !== null ? formatCountdown(remainingMs) : null;
 
   if (compact) {
     return (
       <p className="text-xs text-muted-foreground">
-        Spotify API: {metrics.requestsInWindow}/{metrics.estimatedLimit} requests
-        (30s window)
+        Spotify API: {metrics.requestsInWindow} requests in last {windowSeconds}
+        s
         {rateLimitCountdown
-          ? ` · rate limited, retry in ${rateLimitCountdown}`
-          : ` · ~${metrics.estimatedRemaining} remaining`}
+          ? ` · Retry-After ${rateLimitCountdown}`
+          : null}
       </p>
     );
   }
@@ -89,12 +90,10 @@ export function SpotifyApiMetricsDisplay({
     <div className="space-y-2 text-sm">
       <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
         <p>
-          <span className="text-muted-foreground">Requests (30s window):</span>{" "}
-          {metrics.requestsInWindow} / {metrics.estimatedLimit}
-        </p>
-        <p>
-          <span className="text-muted-foreground">Estimated remaining:</span>{" "}
-          {metrics.estimatedRemaining}
+          <span className="text-muted-foreground">
+            Requests (rolling {windowSeconds}s):
+          </span>{" "}
+          {metrics.requestsInWindow}
         </p>
         <p>
           <span className="text-muted-foreground">Total this session:</span>{" "}
@@ -113,14 +112,15 @@ export function SpotifyApiMetricsDisplay({
       </div>
       {rateLimitCountdown ? (
         <p className="text-destructive">
-          Rate limited — wait {rateLimitCountdown}, then Save once. Do not
-          spam Save; that resets Spotify’s limit.
+          App paused after Spotify HTTP 429 — wait {rateLimitCountdown}{" "}
+          (Retry-After). A single docs/curl call can still work; Save used to
+          fire many requests at once.
         </p>
       ) : null}
       <p className="text-xs text-muted-foreground">
-        Spotify does not publish exact quotas. The 30s counter is only an
-        estimate — a real 429 uses Spotify’s Retry-After cooldown (at least 1
-        minute).
+        Spotify rates apps over a rolling 30s window. Exact limits are not
+        published. We only call Spotify again after Retry-After. Save now does a
+        light sync (~5 calls), then fills extra time ranges if quota allows.
       </p>
     </div>
   );

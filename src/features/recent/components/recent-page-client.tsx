@@ -57,14 +57,14 @@ export function RecentPageClient() {
     <div className={tablePageShellClassName}>
       <PageHeader
         title="Recent"
-        description="Plays stored in your database. Save from Spotify in Settings to import new plays."
+        description="Plays stored in your database. New plays sync automatically when you open this page."
         compact
       />
 
       {data?.total === 0 && !isLoading ? (
         <p className="mb-3 shrink-0 text-sm text-muted-foreground">
-          No plays stored yet. Use Save from Spotify in Settings after listening
-          on Spotify.
+          No plays stored yet. Listen on Spotify, then open this page or use Sync
+          listening history in Settings.
         </p>
       ) : null}
 

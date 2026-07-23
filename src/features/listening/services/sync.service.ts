@@ -1,16 +1,31 @@
-import type { LibrarySyncSuccess } from "@/features/library/services/library-sync.service";
 import type { SpotifyApiMetricsSnapshot } from "@/shared/lib/spotify-api-metrics";
 import { apiClient } from "@/shared/services/axios";
 
-export type LibrarySyncResult =
-  | { skipped: true; reason: "not_connected" }
-  | (LibrarySyncSuccess & { metrics?: SpotifyApiMetricsSnapshot });
+export type PlayHistorySyncResult =
+  | {
+      skipped: true;
+      reason: "not_connected";
+      syncedAt: string;
+      metrics?: SpotifyApiMetricsSnapshot;
+    }
+  | {
+      skipped: false;
+      inserted: number;
+      syncedAt: string;
+      metrics?: SpotifyApiMetricsSnapshot;
+    };
 
-export async function triggerLibrarySync() {
-  const { data } = await apiClient.post<LibrarySyncResult>(
+export async function triggerPlayHistorySync() {
+  const { data } = await apiClient.post<PlayHistorySyncResult>(
     "/spotify/sync",
     undefined,
-    { timeout: 300_000 },
+    { timeout: 60_000 },
   );
   return data;
 }
+
+/** @deprecated Use triggerPlayHistorySync */
+export const triggerLibrarySync = triggerPlayHistorySync;
+
+/** @deprecated Use PlayHistorySyncResult */
+export type LibrarySyncResult = PlayHistorySyncResult;

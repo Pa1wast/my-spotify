@@ -1,14 +1,14 @@
 import { NextRequest } from "next/server";
 
-import {
-  getCachedTopTracks,
-  LIBRARY_NOT_SYNCED_STATUS,
-  libraryNotSyncedMessage,
-} from "@/features/library/services/library-cache.service";
+import { ensureCachedTopTracks } from "@/features/library/services/library-hydrate.service";
 import { getUserByAuth0Sub } from "@/features/spotify/services/spotify-user.service";
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
 import { auth0 } from "@/shared/lib/auth0";
-import { spotifyJsonResponse } from "@/shared/lib/spotify-api-route";
+import {
+  parseRefreshParam,
+  spotifyJsonResponse,
+  spotifyRouteErrorResponse,
+} from "@/shared/lib/spotify-api-route";
 
 function parseTimeRange(value: string | null): SpotifyTimeRange {
   if (value === "medium_term" || value === "long_term") {
@@ -40,19 +40,17 @@ export async function GET(request: NextRequest) {
     Number.parseInt(searchParams.get("limit") ?? "50", 10) || 50,
     50,
   );
+  const force = parseRefreshParam(searchParams);
 
-  const cached = await getCachedTopTracks(user.id, timeRange);
+  try {
+    const cached = await ensureCachedTopTracks(user, timeRange, { force });
 
-  if (!cached) {
-    return spotifyJsonResponse(
-      { message: libraryNotSyncedMessage(), code: "LIBRARY_NOT_SYNCED" },
-      { status: LIBRARY_NOT_SYNCED_STATUS },
-    );
+    return spotifyJsonResponse({
+      items: mapWithRank(cached.data.slice(0, limit)),
+      timeRange,
+      syncedAt: cached.syncedAt.toISOString(),
+    });
+  } catch (error) {
+    return spotifyRouteErrorResponse(error);
   }
-
-  return spotifyJsonResponse({
-    items: mapWithRank(cached.data.slice(0, limit)),
-    timeRange,
-    syncedAt: cached.syncedAt.toISOString(),
-  });
 }

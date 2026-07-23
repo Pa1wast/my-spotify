@@ -30,13 +30,6 @@ function parseTimeRange(value: string | undefined): SpotifyTimeRange {
   return "short_term";
 }
 
-function isLibraryNotSyncedMessage(message: string) {
-  return (
-    message.toLowerCase().includes("no saved library") ||
-    message.toLowerCase().includes("save from spotify")
-  );
-}
-
 function isScopeErrorMessage(message: string) {
   const normalized = message.toLowerCase();
   return (
@@ -110,8 +103,6 @@ export function DashboardPageClient({
   const connection = useSpotifyConnection();
   const connected = connection.data?.connected ?? false;
   const dataEnabled = connected && !connection.isLoading;
-  const needsLibrarySave =
-    connected && connection.data?.hasLibraryCache === false;
 
   const topTracks = useOverviewTopTracks(activeRange, dataEnabled);
   const topArtists = useOverviewTopArtists(activeRange, dataEnabled);
@@ -138,19 +129,6 @@ export function DashboardPageClient({
     return panels;
   }, [playlists.error, recentlyPlayed.error]);
 
-  const libraryNotSynced = useMemo(() => {
-    const errors = [
-      topTracks.error,
-      topArtists.error,
-      recentlyPlayed.error,
-      playlists.error,
-    ]
-      .filter(Boolean)
-      .map((error) => getQueryErrorMessage(error));
-
-    return errors.some((message) => isLibraryNotSyncedMessage(message));
-  }, [playlists.error, recentlyPlayed.error, topArtists.error, topTracks.error]);
-
   const hasPartialData = Boolean(
     topTracks.data?.length ||
       topArtists.data?.length ||
@@ -176,8 +154,7 @@ export function DashboardPageClient({
       .map((error) => getQueryErrorMessage(error));
 
     const nonScopeError = errors.find(
-      (message) =>
-        !isScopeErrorMessage(message) && !isLibraryNotSyncedMessage(message),
+      (message) => !isScopeErrorMessage(message),
     );
     return nonScopeError && !scopeReconnectMessage ? nonScopeError : null;
   }, [
@@ -206,16 +183,6 @@ export function DashboardPageClient({
         <ConnectSpotifyCard />
       ) : (
         <>
-          {needsLibrarySave || libraryNotSynced ? (
-            <p className="text-sm text-muted-foreground">
-              No library saved yet. Open Settings and use{" "}
-              <strong className="font-medium text-foreground">
-                Save from Spotify
-              </strong>{" "}
-              to import your data. The app only reads from your database.
-            </p>
-          ) : null}
-
           {scopeReconnectMessage ? (
             <SpotifyReconnectBanner
               message={scopeReconnectMessage}

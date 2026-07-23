@@ -153,9 +153,9 @@ export async function SettingsPage() {
                 </SpotifySyncButton>
 
                 <p className="text-xs text-muted-foreground">
-                  The app reads from your database. Use Save from Spotify when
-                  you want fresh data — this avoids rate limits during normal
-                  browsing. In-app playback requires Spotify Premium and the
+                  Library pages load from Spotify on demand and cache results for
+                  an hour. Use Sync listening history to import new plays into
+                  your database. In-app playback requires Spotify Premium and the
                   streaming scope.
                 </p>
               </div>

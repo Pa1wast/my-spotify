@@ -29,7 +29,7 @@ export const auth0 = new Auth0Client({
   appBaseUrl: getConfiguredAppBaseUrl(),
   transactionCookie: {
     sameSite: "lax",
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60,
   },

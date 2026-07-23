@@ -2,16 +2,24 @@ import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 
 import { spotifyApiMetrics } from "@/shared/lib/spotify-api-metrics";
 
+/**
+ * Spotify rate limits (docs):
+ * https://developer.spotify.com/documentation/web-api/concepts/rate-limits
+ *
+ * - App-wide limit uses a rolling 30s request window (exact quota unpublished).
+ * - On HTTP 429, wait for `Retry-After` (seconds) before calling again.
+ */
 const DEFAULT_MAX_RETRIES = 2;
 const SPOTIFY_REQUEST_TIMEOUT_MS = 15_000;
-/** Max time we'll sleep inside a single request before giving up to the caller. */
+/** Max time we'll sleep inside a single request before surfacing 429 to the caller. */
 const MAX_IN_REQUEST_WAIT_MS = 10_000;
-/** When Spotify omits Retry-After, assume at least this cooldown. */
-const DEFAULT_RATE_LIMIT_COOLDOWN_MS = 60_000;
-/** Never cool down for less than this after a real 429. */
-const MIN_RATE_LIMIT_COOLDOWN_MS = 60_000;
-/** Upper bound so a bad header can't block the app for hours. */
-const MAX_RATE_LIMIT_COOLDOWN_MS = 15 * 60_000;
+/**
+ * Fallback when Spotify omits Retry-After — one full rate-limit window.
+ * Docs: develop a backoff-retry strategy when rate limited.
+ */
+const DEFAULT_RETRY_AFTER_MS = 30_000;
+/** Guard against malformed Retry-After values (not a Spotify-published max). */
+const MAX_RETRY_AFTER_MS = 24 * 60 * 60_000;
 
 export type SpotifyRequestOptions = {
   attempt?: number;
@@ -35,11 +43,16 @@ export function formatRateLimitMessage(retryAfterMs: number) {
   const seconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
 
   if (seconds < 60) {
-    return `Spotify rate limit reached. Wait ${seconds}s, then try Save once.`;
+    return `Spotify rate limit (HTTP 429). Wait ${seconds}s per Retry-After, then try once.`;
   }
 
-  const minutes = Math.ceil(seconds / 60);
-  return `Spotify rate limit reached. Wait about ${minutes} min, then try Save once.`;
+  const minutes = Math.floor(seconds / 60);
+  const remSeconds = seconds % 60;
+  if (remSeconds === 0) {
+    return `Spotify rate limit (HTTP 429). Wait ${minutes} min per Retry-After, then try once.`;
+  }
+
+  return `Spotify rate limit (HTTP 429). Wait ${minutes}m ${remSeconds}s per Retry-After, then try once.`;
 }
 
 function getHeaderValue(
@@ -85,6 +98,7 @@ function getHeaderValue(
   return null;
 }
 
+/** Parse Spotify's Retry-After header (seconds, or HTTP-date). */
 export function getRetryAfterMs(error: AxiosError): number | null {
   const retryAfter = getHeaderValue(error.response?.headers, "retry-after");
 
@@ -107,14 +121,21 @@ export function getRetryAfterMs(error: AxiosError): number | null {
   return null;
 }
 
-function resolveCooldownMs(retryAfterMs: number | null, attempt: number) {
-  const raw =
-    retryAfterMs ??
-    Math.max(DEFAULT_RATE_LIMIT_COOLDOWN_MS, 2 ** attempt * 1000);
+/**
+ * Resolve how long to wait after a 429.
+ * Prefer Spotify's Retry-After exactly; otherwise exponential backoff.
+ */
+export function resolveRetryAfterMs(
+  retryAfterMs: number | null,
+  attempt = 0,
+): number {
+  if (retryAfterMs !== null && Number.isFinite(retryAfterMs)) {
+    return Math.min(MAX_RETRY_AFTER_MS, Math.max(0, retryAfterMs));
+  }
 
   return Math.min(
-    MAX_RATE_LIMIT_COOLDOWN_MS,
-    Math.max(MIN_RATE_LIMIT_COOLDOWN_MS, raw),
+    MAX_RETRY_AFTER_MS,
+    Math.max(DEFAULT_RETRY_AFTER_MS, 2 ** attempt * 1000),
   );
 }
 
@@ -137,6 +158,11 @@ export async function spotifyRequest<T>(
   const attempt = options.attempt ?? 0;
   const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
 
+  const blockedMs = spotifyApiMetrics.getRateLimitRemainingMs();
+  if (blockedMs !== null) {
+    throw new SpotifyRateLimitError(blockedMs);
+  }
+
   try {
     spotifyApiMetrics.recordRequest();
     const response = await axios.request<T>({
@@ -156,17 +182,17 @@ export async function spotifyRequest<T>(
     const status = error.response?.status;
 
     if (status === 429) {
-      const retryAfterMs = getRetryAfterMs(error);
-      const cooldownMs = resolveCooldownMs(retryAfterMs, attempt);
+      const headerMs = getRetryAfterMs(error);
+      const cooldownMs = resolveRetryAfterMs(headerMs, attempt);
       spotifyApiMetrics.recordRateLimit(cooldownMs);
 
       const canRetryInRequest =
         attempt < maxRetries &&
-        (retryAfterMs === null || retryAfterMs <= MAX_IN_REQUEST_WAIT_MS);
+        (headerMs === null || headerMs <= MAX_IN_REQUEST_WAIT_MS);
 
       if (canRetryInRequest) {
         const waitMs = Math.min(
-          retryAfterMs ?? 2 ** attempt * 1000,
+          headerMs ?? 2 ** attempt * 1000,
           MAX_IN_REQUEST_WAIT_MS,
         );
         await sleep(waitMs);
@@ -223,9 +249,8 @@ export function getSpotifyErrorMessage(error: unknown): string {
   }
 
   if (error.response?.status === 429) {
-    const retryAfterMs = getRetryAfterMs(error);
     return formatRateLimitMessage(
-      resolveCooldownMs(retryAfterMs, 0),
+      resolveRetryAfterMs(getRetryAfterMs(error), 0),
     );
   }
 

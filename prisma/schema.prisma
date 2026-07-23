@@ -57,6 +57,7 @@ model UserSyncState {
   lastSyncedAt       DateTime? @map("last_synced_at")
   lastLibrarySyncAt  DateTime? @map("last_library_sync_at")
   lastCursor         String?   @map("last_cursor")
+  rateLimitedUntil   DateTime? @map("rate_limited_until")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

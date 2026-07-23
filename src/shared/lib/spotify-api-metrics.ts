@@ -1,11 +1,15 @@
-const WINDOW_MS = 30_000;
-export const SPOTIFY_ESTIMATED_REQUEST_LIMIT = 180;
+/**
+ * Spotify calculates rate limits over a rolling 30 second window.
+ * @see https://developer.spotify.com/documentation/web-api/concepts/rate-limits
+ */
+export const SPOTIFY_RATE_LIMIT_WINDOW_MS = 30_000;
 
 export interface SpotifyApiMetricsSnapshot {
+  /** Requests observed in the current rolling 30s window (local tracker). */
   requestsInWindow: number;
-  estimatedRemaining: number;
-  estimatedLimit: number;
+  windowMs: number;
   totalRequests: number;
+  /** ISO time until which we must not call Spotify (from Retry-After). */
   rateLimitedUntil: string | null;
   rateLimitRemainingMs: number | null;
   lastRequestAt: string | null;
@@ -57,11 +61,7 @@ class SpotifyApiMetricsTracker {
 
     return {
       requestsInWindow,
-      estimatedRemaining: Math.max(
-        0,
-        SPOTIFY_ESTIMATED_REQUEST_LIMIT - requestsInWindow,
-      ),
-      estimatedLimit: SPOTIFY_ESTIMATED_REQUEST_LIMIT,
+      windowMs: SPOTIFY_RATE_LIMIT_WINDOW_MS,
       totalRequests: this.totalRequests,
       rateLimitedUntil:
         remainingMs !== null && this.rateLimitedUntil
@@ -76,7 +76,7 @@ class SpotifyApiMetricsTracker {
 
   private prune(now: number) {
     this.timestamps = this.timestamps.filter(
-      (timestamp) => now - timestamp < WINDOW_MS,
+      (timestamp) => now - timestamp < SPOTIFY_RATE_LIMIT_WINDOW_MS,
     );
 
     if (this.rateLimitedUntil && this.rateLimitedUntil <= now) {

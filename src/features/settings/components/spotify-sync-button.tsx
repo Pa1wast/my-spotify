@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useSpotifyApiMetrics } from "@/features/dashboard/hooks/use-dashboard-overview";
 import { useSpotifySync } from "@/features/settings/hooks/use-spotify-sync";
 import { settingsActionLinkClass } from "@/shared/constants/settings-links";
 import { getApiErrorMessage } from "@/shared/services/axios";
@@ -19,7 +20,11 @@ export function SpotifySyncButton({
 }: SpotifySyncButtonProps) {
   const router = useRouter();
   const sync = useSpotifySync();
+  const metrics = useSpotifyApiMetrics();
   const [message, setMessage] = useState<string | null>(null);
+  const rateLimited =
+    Boolean(metrics.data?.rateLimitedUntil) &&
+    new Date(metrics.data!.rateLimitedUntil!).getTime() > Date.now();
 
   useEffect(() => {
     if (!message) {
@@ -34,36 +39,26 @@ export function SpotifySyncButton({
   }, [message]);
 
   function handleSync() {
+    if (rateLimited) {
+      setMessage(
+        "Still cooling down from Spotify’s rate limit. Wait for the countdown, then try once.",
+      );
+      return;
+    }
+
     sync.mutate(undefined, {
       onSuccess: (result) => {
         router.refresh();
 
         if (result.skipped) {
-          setMessage("Spotify is not connected. Reconnect to save your library.");
-          return;
-        }
-
-        if (result.partial) {
-          const needsReconnect = result.errors.some((error) =>
-            error.toLowerCase().includes("reconnect"),
-          );
-          const rateLimited = result.errors.some((error) =>
-            error.toLowerCase().includes("rate limit"),
-          );
-          setMessage(
-            `Saved partially (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays. ${result.errors[0] ?? "Some sections failed."}${
-              needsReconnect
-                ? " Use Reconnect Spotify, then save again."
-                : rateLimited
-                  ? " Watch the API usage countdown, then save once more."
-                  : " Try save again shortly."
-            }`,
-          );
+          setMessage("Spotify is not connected. Reconnect to sync listening history.");
           return;
         }
 
         setMessage(
-          `Saved to database (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays.`,
+          result.inserted > 0
+            ? `Synced ${result.inserted} new play${result.inserted === 1 ? "" : "s"} from Spotify.`
+            : "Listening history is up to date — no new plays to import.",
         );
       },
       onError: (error) => {
@@ -78,10 +73,14 @@ export function SpotifySyncButton({
         <button
           type="button"
           onClick={handleSync}
-          disabled={sync.isPending}
+          disabled={sync.isPending || rateLimited}
           className={settingsActionLinkClass}
         >
-          {sync.isPending ? "Saving from Spotify…" : "Save from Spotify"}
+          {sync.isPending
+            ? "Syncing listening history…"
+            : rateLimited
+              ? "Waiting on rate limit…"
+              : "Sync listening history"}
         </button>
         {children}
       </div>

@@ -94,12 +94,12 @@ Playback does not call Spotify for browsing — only when you press play or use 
 
 ## Play tracking
 
-Play history is **forward-only**: the app polls Spotify's recently-played endpoint when you **Save from Spotify** in Settings and stores events in Neon. It does not backfill your full Spotify history.
+Play history is **forward-only**: the app polls Spotify's recently-played endpoint when you open Recent, use **Sync listening history** in Settings, or via the daily cron — and stores events in Neon. It does not backfill your full Spotify history.
 
-Browsing (Overview, Tracks, Artists, Playlists) reads from your **database cache** — not Spotify — so you avoid rate limits during normal use.
+Library data (top tracks, artists, liked songs, playlists) loads from Spotify when you open each page, then caches in your database for about an hour.
 
-- Manual import: **Settings → Save from Spotify**
-- Automatic import: Vercel cron every 30 minutes (`vercel.json`) using `CRON_SECRET`
+- Manual play import: **Settings → Sync listening history**
+- Automatic play import: Vercel cron once daily (`vercel.json`) using `CRON_SECRET`
 
 ## Deployment (Vercel)
 

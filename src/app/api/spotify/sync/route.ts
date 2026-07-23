@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { syncSpotifyLibraryForAllUsers } from "@/features/library/services/library-sync-all.service";
-import { syncSpotifyLibraryForUser } from "@/features/library/services/library-sync.service";
+import {
+  syncPlayHistoryForAllUsers,
+  syncPlayHistoryForUser,
+} from "@/features/listening/services/play-sync.service";
+import {
+  hydrateSpotifyRateLimitFromDb,
+  persistSpotifyRateLimit,
+} from "@/features/spotify/services/spotify-rate-limit.service";
 import { getUserByAuth0Sub } from "@/features/spotify/services/spotify-user.service";
 import { auth0 } from "@/shared/lib/auth0";
 import { spotifyApiMetrics } from "@/shared/lib/spotify-api-metrics";
@@ -9,6 +15,7 @@ import {
   formatRateLimitMessage,
   getSpotifyErrorMessage,
   isSpotifyRateLimitError,
+  SpotifyRateLimitError,
 } from "@/shared/lib/spotify-http";
 
 function verifyCronSecret(request: NextRequest) {
@@ -26,7 +33,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await syncSpotifyLibraryForAllUsers();
+  const result = await syncPlayHistoryForAllUsers();
   return NextResponse.json(result);
 }
 
@@ -43,12 +50,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  const remainingMs = spotifyApiMetrics.getRateLimitRemainingMs();
+  const persistedRemainingMs = await hydrateSpotifyRateLimitFromDb(user.id);
+  const memoryRemainingMs = spotifyApiMetrics.getRateLimitRemainingMs();
+  const remainingMs =
+    persistedRemainingMs !== null || memoryRemainingMs !== null
+      ? Math.max(persistedRemainingMs ?? 0, memoryRemainingMs ?? 0)
+      : null;
 
-  if (remainingMs !== null) {
+  if (remainingMs !== null && remainingMs > 0) {
     return NextResponse.json(
       {
-        message: formatRateLimitMessage(remainingMs),
+        message: `${formatRateLimitMessage(remainingMs)} (App is pausing calls until Retry-After ends.)`,
         metrics: spotifyApiMetrics.getSnapshot(),
       },
       { status: 429 },
@@ -56,13 +68,33 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await syncSpotifyLibraryForUser(user);
+    const result = await syncPlayHistoryForUser(user);
+    const syncedAt = new Date().toISOString();
+
+    if (result.skipped) {
+      return NextResponse.json({
+        skipped: true,
+        reason: result.reason,
+        syncedAt,
+        metrics: spotifyApiMetrics.getSnapshot(),
+      });
+    }
 
     return NextResponse.json({
-      ...result,
+      skipped: false,
+      inserted: result.inserted,
+      syncedAt,
       metrics: spotifyApiMetrics.getSnapshot(),
     });
   } catch (error) {
+    if (isSpotifyRateLimitError(error)) {
+      const retryAfterMs =
+        error instanceof SpotifyRateLimitError
+          ? error.retryAfterMs
+          : 60_000;
+      await persistSpotifyRateLimit(user.id, retryAfterMs);
+    }
+
     const status = isSpotifyRateLimitError(error) ? 429 : 500;
 
     return NextResponse.json(

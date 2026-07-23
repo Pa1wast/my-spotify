@@ -125,6 +125,15 @@ export async function hasEssentialLibraryCache(userId: string) {
   return Boolean(topTracks && topArtists);
 }
 
+export const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
+
+export function isCacheFresh(
+  syncedAt: Date,
+  ttlMs: number = LIBRARY_CACHE_TTL_MS,
+) {
+  return Date.now() - syncedAt.getTime() < ttlMs;
+}
+
 export const LIBRARY_NOT_SYNCED_STATUS = 409;
 
 export async function getLibrarySyncState(userId: string) {
@@ -186,6 +195,6 @@ export async function setCachedPlaylists(
   return writeCache(userId, LIBRARY_CACHE_KEYS.playlists, payload);
 }
 
-export function libraryNotSyncedMessage() {
-  return "No saved library yet. Use “Save from Spotify” in Settings to import your data.";
+export function spotifyNotConnectedMessage() {
+  return "Spotify is not connected. Connect Spotify in Settings to load your library.";
 }

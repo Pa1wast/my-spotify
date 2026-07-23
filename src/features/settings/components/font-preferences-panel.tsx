@@ -43,7 +43,7 @@ export function FontPreferencesPanel() {
           Heading preview — My Spotify
         </p>
         <p className="font-action text-base text-foreground">
-          Button preview — Save from Spotify
+          Button preview — Sync listening history
         </p>
       </div>
     </div>
