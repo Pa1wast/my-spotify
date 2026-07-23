@@ -11,13 +11,19 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  auth0Sub  String   @unique @map("auth0_sub")
-  email     String?  @unique
-  name      String?
-  picture   String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                    String    @id @default(cuid())
+  auth0Sub              String    @unique @map("auth0_sub")
+  email                 String?   @unique
+  name                  String?
+  picture               String?
+  spotifyUserId         String?   @unique @map("spotify_user_id")
+  spotifyAccessToken    String?   @map("spotify_access_token") @db.Text
+  spotifyRefreshToken   String?   @map("spotify_refresh_token") @db.Text
+  spotifyTokenExpiresAt DateTime? @map("spotify_token_expires_at")
+  spotifyDisplayName    String?   @map("spotify_display_name")
+  spotifyProduct        String?   @map("spotify_product")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }

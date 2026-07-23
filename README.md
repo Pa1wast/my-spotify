@@ -96,9 +96,30 @@ src/
 
 Prisma client generation runs automatically via `postinstall` and `build`.
 
-## Spotify Web API (later)
+## Spotify Web API
 
-When you have Spotify API credentials, add them to `.env` and build services under `features/` for library sync and playback metadata. The NyxUI music player is already wired on the home page as a UI placeholder.
+1. Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Add redirect URIs:
+   - `http://localhost:3000/api/spotify/callback`
+   - `https://your-vercel-url.vercel.app/api/spotify/callback`
+3. Add your Spotify account under **User Management** (Development mode)
+4. Set env vars locally and on Vercel:
+
+```bash
+SPOTIFY_CLIENT_ID=your-client-id
+SPOTIFY_CLIENT_SECRET=your-client-secret
+SPOTIFY_REDIRECT_URI=http://localhost:3000/api/spotify/callback
+```
+
+On Vercel, use your production URL for `SPOTIFY_REDIRECT_URI`.
+
+5. Apply the database schema after pulling Spotify changes:
+
+```bash
+npm run db:push
+```
+
+6. Log in with Auth0, click **Connect Spotify**, then view your top tracks on the home page.
 
 ## Agent skills & rules
 
