@@ -17,7 +17,7 @@ export function TopTracksCard({ tracks }: TopTracksCardProps) {
 
   return (
     <section className="min-w-0 w-full">
-      <h2 className="border-b border-border pb-2 text-sm font-medium">
+      <h2 className="border-b border-border pb-2 font-display text-2xl font-bold tracking-wide">
         Top tracks
       </h2>
       <ul className="min-w-0 divide-y divide-border">

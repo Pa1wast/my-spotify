@@ -29,7 +29,7 @@ export function PlaylistsPreviewCard({
   return (
     <section className="min-w-0 w-full">
       <div className="flex items-baseline justify-between border-b border-border pb-2">
-        <h2 className="text-sm font-medium">Your playlists</h2>
+        <h2 className="font-display text-2xl font-bold tracking-wide">Your playlists</h2>
         <span className="text-xs text-muted-foreground">{total} total</span>
       </div>
       <ul className="min-w-0 divide-y divide-border">

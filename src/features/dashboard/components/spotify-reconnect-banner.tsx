@@ -8,7 +8,7 @@ export function SpotifyReconnectBanner({
   variant = "error",
 }: SpotifyReconnectBannerProps) {
   return (
-    <div className="min-w-0 border-b border-border pb-4 text-sm">
+    <div className="min-w-0 text-sm">
       <p className={variant === "error" ? "text-destructive" : "text-foreground"}>
         {message}
       </p>

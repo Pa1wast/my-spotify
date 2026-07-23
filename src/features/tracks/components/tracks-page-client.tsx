@@ -104,7 +104,7 @@ export function TracksPageClient() {
       />
 
       {isError ? (
-        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 py-3 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (
@@ -117,7 +117,7 @@ export function TracksPageClient() {
             data
               ? {
                   page: data.page,
-                  totalPages: data.totalPages,
+                  totalPages: Math.max(1, data.totalPages),
                   total: data.total,
                   onPageChange: setPage,
                 }

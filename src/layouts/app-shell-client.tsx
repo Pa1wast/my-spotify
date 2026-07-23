@@ -18,7 +18,11 @@ interface AppShellClientProps {
   userPicture?: string | null;
 }
 
-function AppShellContent({ children }: AppShellClientProps) {
+function AppShellContent({
+  children,
+  userName,
+  userPicture,
+}: AppShellClientProps) {
   const player = useSpotifyPlayer();
   const hasTrack = Boolean(player.currentTrack);
   const playerOffset = getPlayerBarOffsetClass(hasTrack);
@@ -27,10 +31,11 @@ function AppShellContent({ children }: AppShellClientProps) {
     <div className="flex h-dvh min-w-0 overflow-hidden">
       <AppSidebar />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:pl-44">
-        <AppMobileHeader />
+        <AppMobileHeader userName={userName} userPicture={userPicture} />
         <main
           className={cn(
-            "mx-auto flex min-h-0 w-full min-w-0 max-w-6xl flex-1 flex-col overflow-hidden px-4 pt-4 sm:px-6 sm:pt-6",
+            "mx-auto flex min-h-0 w-full min-w-0 max-w-6xl flex-1 flex-col overflow-hidden px-4 pt-3 sm:px-6 sm:pt-6",
+            // Bottom nav clearance on mobile; player offset stacks on top of nav.
             "pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0",
             playerOffset,
           )}

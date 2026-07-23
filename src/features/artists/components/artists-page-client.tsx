@@ -91,7 +91,7 @@ export function ArtistsPageClient({
         description="Your top artists for the selected period."
       />
 
-      <div className="mb-4 shrink-0">
+      <div className="shrink-0 pb-3">
         <TimeRangeTabs
           activeRange={timeRange}
           onChange={setTimeRange}
@@ -100,7 +100,7 @@ export function ArtistsPageClient({
       </div>
 
       {isError ? (
-        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 py-3 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (

@@ -2,6 +2,8 @@ import Image from "next/image";
 
 import { ConnectSpotifyCard } from "@/features/dashboard/components/connect-spotify-card";
 import { getLibrarySyncState } from "@/features/library/services/library-cache.service";
+import { PrimaryColorPreference } from "@/features/settings/components/primary-color-preference";
+import { FontPreferencesPanel } from "@/features/settings/components/font-preferences-panel";
 import { SpotifyApiMetricsPanel } from "@/features/settings/components/spotify-api-metrics-panel";
 import { SpotifySyncButton } from "@/features/settings/components/spotify-sync-button";
 import {
@@ -29,15 +31,13 @@ function formatSyncTime(date: Date | null | undefined) {
 function SettingsSection({
   title,
   children,
-  isLast = false,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
-  isLast?: boolean;
 }) {
   return (
-    <section className={isLast ? "pb-0" : "border-b border-border pb-4 lg:border-b-0 lg:pb-0"}>
-      <h2 className="text-sm font-medium">{title}</h2>
+    <section>
+      <h2 className="font-display text-2xl font-bold tracking-wide">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -86,100 +86,124 @@ export async function SettingsPage() {
 
   return (
     <div className={scrollPageShellClassName}>
-      <div className="min-w-0 space-y-4">
-      <PageHeader
-        title="Settings"
-        description="Account and Spotify connection."
-        compact
-      />
+      <div className="min-w-0 space-y-6">
+        <PageHeader
+          title="Settings"
+          description="Account and Spotify connection."
+          compact
+        />
 
-      <div className="grid gap-4 border-b border-border pb-4 lg:grid-cols-2 lg:gap-8">
-        <SettingsSection title="Account">
-          <div className="flex items-center gap-3">
-            {session.user.picture ? (
-              <Image
-                src={session.user.picture}
-                alt={session.user.name ?? "User"}
-                width={40}
-                height={40}
-                className="size-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                {(session.user.name ?? "U").charAt(0).toUpperCase()}
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+          <SettingsSection title="Account">
+            <div className="flex items-center gap-3">
+              {session.user.picture ? (
+                <Image
+                  src={session.user.picture}
+                  alt={session.user.name ?? "User"}
+                  width={40}
+                  height={40}
+                  className="size-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex size-10 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                  {(session.user.name ?? "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm">
+                  {session.user.name ?? "Unknown user"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {session.user.email ?? "No email"}
+                </p>
               </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm">
-                {session.user.name ?? "Unknown user"}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {session.user.email ?? "No email"}
-              </p>
             </div>
-          </div>
-        </SettingsSection>
-
-        <SettingsSection title={<SpotifySectionTitle />}>
-          {connected ? (
-            <div className="space-y-3">
-              <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
-                <SpotifyStatusItem label="Status:" value="Connected" />
-                <SpotifyStatusItem
-                  label="Display name:"
-                  value={user?.spotifyDisplayName ?? "—"}
-                />
-                <SpotifyStatusItem
-                  label="Plan:"
-                  value={user?.spotifyProduct ?? "—"}
-                />
-                <SpotifyStatusItem
-                  label="Last saved:"
-                  value={formatSyncTime(syncState?.lastLibrarySyncAt)}
-                />
-                <SpotifyStatusItem
-                  label="Last play sync:"
-                  value={formatSyncTime(syncState?.lastSyncedAt)}
-                />
-              </div>
-
-              <SpotifySyncButton>
-                <a href="/api/spotify/login?consent=1" className={settingsActionLinkClass}>
-                  Reconnect Spotify
-                </a>
-              </SpotifySyncButton>
-
-              <p className="text-xs text-muted-foreground">
-                The app reads from your database. Use Save from Spotify when you
-                want fresh data — this avoids rate limits during normal browsing.
-                In-app playback requires Spotify Premium and the streaming scope.
-              </p>
-            </div>
-          ) : (
-            <ConnectSpotifyCard className="border-0 pb-0" />
-          )}
-        </SettingsSection>
-      </div>
-
-      {connected ? (
-        <div className="grid gap-4 lg:grid-cols-2 lg:gap-8">
-          <SettingsSection title="API usage">
-            <SpotifyApiMetricsPanel />
           </SettingsSection>
 
-          <SettingsSection title="Session" isLast>
-            <a href="/auth/logout" className={settingsActionLinkClass}>
-              Log out
-            </a>
+          <SettingsSection title={<SpotifySectionTitle />}>
+            {connected ? (
+              <div className="space-y-3">
+                <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
+                  <SpotifyStatusItem label="Status:" value="Connected" />
+                  <SpotifyStatusItem
+                    label="Display name:"
+                    value={user?.spotifyDisplayName ?? "—"}
+                  />
+                  <SpotifyStatusItem
+                    label="Plan:"
+                    value={user?.spotifyProduct ?? "—"}
+                  />
+                  <SpotifyStatusItem
+                    label="Last saved:"
+                    value={formatSyncTime(syncState?.lastLibrarySyncAt)}
+                  />
+                  <SpotifyStatusItem
+                    label="Last play sync:"
+                    value={formatSyncTime(syncState?.lastSyncedAt)}
+                  />
+                </div>
+
+                <SpotifySyncButton>
+                  <a
+                    href="/api/spotify/login?consent=1"
+                    className={settingsActionLinkClass}
+                  >
+                    Reconnect Spotify
+                  </a>
+                </SpotifySyncButton>
+
+                <p className="text-xs text-muted-foreground">
+                  The app reads from your database. Use Save from Spotify when
+                  you want fresh data — this avoids rate limits during normal
+                  browsing. In-app playback requires Spotify Premium and the
+                  streaming scope.
+                </p>
+              </div>
+            ) : (
+              <ConnectSpotifyCard className="border-0 pb-0" />
+            )}
           </SettingsSection>
         </div>
-      ) : (
-        <SettingsSection title="Session" isLast>
-          <a href="/auth/logout" className={settingsActionLinkClass}>
-            Log out
-          </a>
-        </SettingsSection>
-      )}
+
+        <div className="border-t border-border pt-6">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+            <div className="space-y-8">
+              <SettingsSection title="Preferences">
+                <PrimaryColorPreference />
+              </SettingsSection>
+
+              {connected ? (
+                <div className="border-t border-border pt-6">
+                  <SettingsSection title="API usage">
+                    <SpotifyApiMetricsPanel />
+                  </SettingsSection>
+                </div>
+              ) : (
+                <div className="border-t border-border pt-6">
+                  <SettingsSection title="Session">
+                    <a href="/auth/logout" className={settingsActionLinkClass}>
+                      Log out
+                    </a>
+                  </SettingsSection>
+                </div>
+              )}
+            </div>
+
+            <SettingsSection title="Fonts">
+              <FontPreferencesPanel />
+            </SettingsSection>
+          </div>
+        </div>
+
+        {connected ? (
+          <div className="border-t border-border pt-6">
+            <SettingsSection title="Session">
+              <a href="/auth/logout" className={settingsActionLinkClass}>
+                Log out
+              </a>
+            </SettingsSection>
+          </div>
+        ) : null}
       </div>
     </div>
   );

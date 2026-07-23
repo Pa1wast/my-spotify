@@ -53,7 +53,7 @@ function mapSdkTrack(track: Spotify.WebPlaybackTrack): PlayerTrack {
     title: track.name,
     artist: track.artists.map((artist) => artist.name).join(", "),
     album: track.album.name,
-    artwork: track.album.images[0]?.url ?? "/logo/logo-icon.png",
+    artwork: track.album.images[0]?.url ?? "/logo/logo-icon-brand.png",
     durationMs: track.duration_ms,
   };
 }

@@ -62,14 +62,14 @@ export function RecentPageClient() {
       />
 
       {data?.total === 0 && !isLoading ? (
-        <p className="mb-4 shrink-0 border-b border-border pb-4 text-sm text-muted-foreground">
+        <p className="mb-3 shrink-0 text-sm text-muted-foreground">
           No plays stored yet. Use Save from Spotify in Settings after listening
           on Spotify.
         </p>
       ) : null}
 
       {isError ? (
-        <p className="shrink-0 border-b border-border pb-4 text-sm text-destructive">
+        <p className="shrink-0 py-3 text-sm text-destructive">
           {(error as Error).message}
         </p>
       ) : (
@@ -82,7 +82,7 @@ export function RecentPageClient() {
             data
               ? {
                   page: data.page,
-                  totalPages: data.totalPages,
+                  totalPages: Math.max(1, data.totalPages),
                   total: data.total,
                   onPageChange: setPage,
                 }

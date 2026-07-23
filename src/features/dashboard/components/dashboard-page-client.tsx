@@ -61,7 +61,7 @@ function OverviewSection({
   if (isLoading) {
     return (
       <section className="min-w-0 w-full">
-        <h2 className="border-b border-border pb-2 text-sm font-medium">{title}</h2>
+        <h2 className="border-b border-border pb-2 font-display text-2xl font-bold tracking-wide">{title}</h2>
         <p className="py-3 text-sm text-muted-foreground">Loading…</p>
       </section>
     );
@@ -70,7 +70,7 @@ function OverviewSection({
   if (errorMessage) {
     return (
       <section className="min-w-0 w-full">
-        <h2 className="border-b border-border pb-2 text-sm font-medium">{title}</h2>
+        <h2 className="border-b border-border pb-2 font-display text-2xl font-bold tracking-wide">{title}</h2>
         <p
           className={`py-3 text-sm ${
             isScopeErrorMessage(errorMessage)
@@ -90,7 +90,7 @@ function OverviewSection({
 
   return (
     <section className="min-w-0 w-full">
-      <h2 className="border-b border-border pb-2 text-sm font-medium">{title}</h2>
+      <h2 className="border-b border-border pb-2 font-display text-2xl font-bold tracking-wide">{title}</h2>
       <p className="py-3 text-sm text-muted-foreground">{emptyMessage}</p>
     </section>
   );
@@ -207,7 +207,7 @@ export function DashboardPageClient({
       ) : (
         <>
           {needsLibrarySave || libraryNotSynced ? (
-            <p className="border-b border-border pb-4 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               No library saved yet. Open Settings and use{" "}
               <strong className="font-medium text-foreground">
                 Save from Spotify
@@ -228,18 +228,18 @@ export function DashboardPageClient({
           ) : null}
 
           {generalError ? (
-            <p className="border-b border-border pb-4 text-sm text-destructive">
-              {generalError}
-            </p>
+            <p className="text-sm text-destructive">{generalError}</p>
           ) : null}
 
-          <TimeRangeTabs
-            activeRange={activeRange}
-            useLinks={false}
-            onChange={setActiveRange}
-          />
+          <div className="border-b border-border pb-3">
+            <TimeRangeTabs
+              activeRange={activeRange}
+              useLinks={false}
+              onChange={setActiveRange}
+            />
+          </div>
 
-          <div className="grid w-full min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 [&>*]:min-w-0">
+          <div className="grid w-full min-w-0 grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 [&>*]:min-w-0">
             <OverviewSection
               title="Top tracks"
               isLoading={topTracks.isLoading}

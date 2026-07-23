@@ -21,7 +21,7 @@ function toPlayerTrack(item: SpotifyRecentlyPlayedItem): PlayerTrack {
     title: track.name,
     artist: artistNames,
     album: track.album?.name ?? "Unknown album",
-    artwork: track.album?.images?.[0]?.url ?? "/logo/logo-icon.png",
+    artwork: track.album?.images?.[0]?.url ?? "/logo/logo-icon-brand.png",
     durationMs: track.duration_ms || 0,
   };
 }
@@ -31,7 +31,7 @@ export function RecentlyPlayedCard({ items }: RecentlyPlayedCardProps) {
 
   return (
     <section className="min-w-0 w-full">
-      <h2 className="border-b border-border pb-2 text-sm font-medium">
+      <h2 className="border-b border-border pb-2 font-display text-2xl font-bold tracking-wide">
         Recently played
       </h2>
       <ul className="min-w-0 divide-y divide-border">

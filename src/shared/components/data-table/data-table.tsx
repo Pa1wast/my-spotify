@@ -62,6 +62,8 @@ export function DataTable<TData>({
   });
 
   const tableClassName = "w-full table-fixed caption-bottom text-sm";
+  const rowCount = table.getRowModel().rows.length;
+  const totalPages = Math.max(1, pagination?.totalPages ?? 1);
 
   return (
     <div
@@ -73,9 +75,12 @@ export function DataTable<TData>({
       <div className="shrink-0 overflow-x-auto border-b border-border bg-background">
         <table className={tableClassName}>
           <TableColGroup columnCount={columns.length} />
-          <TableHeader>
+          <TableHeader className="[&_tr]:border-b-0">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-border">
+              <TableRow
+                key={headerGroup.id}
+                className="border-b-0 hover:bg-transparent"
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} className="bg-background">
                     {header.isPlaceholder
@@ -97,12 +102,12 @@ export function DataTable<TData>({
           <TableColGroup columnCount={columns.length} />
           <TableBody>
             {isLoading ? (
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   Loading…
                 </TableCell>
               </TableRow>
-            ) : table.getRowModel().rows.length > 0 ? (
+            ) : rowCount > 0 ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
@@ -116,7 +121,7 @@ export function DataTable<TData>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   {emptyMessage}
                 </TableCell>
@@ -126,35 +131,42 @@ export function DataTable<TData>({
         </table>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between border-t border-border bg-background px-3 py-3 text-xs text-muted-foreground">
-        {pagination ? (
+      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-background px-3 py-4 text-sm text-muted-foreground sm:px-4 sm:py-3.5">
+        {isLoading ? (
+          <span>Loading…</span>
+        ) : pagination ? (
           <>
-            <span>
-              Page {pagination.page} of {pagination.totalPages} · {pagination.total}{" "}
-              total
+            <span className="min-w-0 truncate">
+              Page {pagination.page} of {totalPages}
+              <span className="hidden sm:inline">
+                {" "}
+                · {pagination.total} total
+              </span>
             </span>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               <button
                 type="button"
                 disabled={pagination.page <= 1}
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
-                className="text-foreground underline-offset-4 hover:underline disabled:opacity-40"
+                className="min-h-11 rounded-md px-3 font-action text-sm font-bold tracking-wide text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40 sm:min-h-9"
               >
                 Previous
               </button>
               <button
                 type="button"
-                disabled={pagination.page >= pagination.totalPages}
+                disabled={
+                  pagination.page >= totalPages || pagination.total === 0
+                }
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
-                className="text-foreground underline-offset-4 hover:underline disabled:opacity-40"
+                className="min-h-11 rounded-md px-3 font-action text-sm font-bold tracking-wide text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40 sm:min-h-9"
               >
                 Next
               </button>
             </div>
           </>
         ) : (
-          <span className="text-muted-foreground">
-            {table.getRowModel().rows.length} rows
+          <span>
+            {rowCount === 0 ? "No rows" : `${rowCount} row${rowCount === 1 ? "" : "s"}`}
           </span>
         )}
       </div>
@@ -168,4 +180,4 @@ export const tablePageShellClassName =
 export const tablePageShellWithTabsClassName = tablePageShellClassName;
 
 export const scrollPageShellClassName =
-  "min-h-0 flex-1 overflow-y-auto overflow-x-hidden";
+  "min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4";

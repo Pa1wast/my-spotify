@@ -32,9 +32,9 @@ export function TimeRangeTabs({
       {TIME_RANGE_OPTIONS.map((option) => {
         const isActive = option.value === activeRange;
         const className = cn(
-          "transition-colors",
+          "font-action tracking-wide transition-colors",
           isActive
-            ? "font-medium text-foreground underline underline-offset-4"
+            ? "font-bold text-primary underline underline-offset-4"
             : "text-muted-foreground hover:text-foreground",
         );
 

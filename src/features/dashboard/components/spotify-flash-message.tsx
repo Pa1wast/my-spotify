@@ -81,7 +81,7 @@ export function SpotifyFlashMessage() {
 
   return (
     <p
-      className={`min-w-0 border-b border-border pb-4 text-sm ${
+      className={`min-w-0 text-sm ${
         message.tone === "error" ? "text-destructive" : "text-muted-foreground"
       }`}
       role="status"

@@ -8,9 +8,10 @@ import { cn } from "@/shared/lib/utils";
 
 const PLAYER_BAR_HEIGHT = "4.5rem";
 
+/** Stacks above the mobile bottom nav; on desktop only the player height. */
 export function getPlayerBarOffsetClass(hasTrack: boolean) {
   return hasTrack
-    ? "pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-[4.5rem]"
+    ? "pb-[calc(4.5rem+3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-[4.5rem]"
     : "";
 }
 
@@ -35,14 +36,14 @@ export function AppPlayerBar() {
   return (
     <>
       {player.error && player.isSpotifyConnected ? (
-        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-destructive/30 bg-background px-4 py-2 text-xs text-destructive lg:bottom-0 lg:left-44">
+        <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-destructive/30 bg-background px-4 py-2 text-xs text-destructive lg:bottom-0 lg:left-44">
           {player.error}
         </div>
       ) : null}
 
       {showBar ? (
         <div
-          className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:bottom-0 lg:left-44"
+          className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:bottom-0 lg:left-44"
           style={{ height: PLAYER_BAR_HEIGHT }}
         >
           <div className="absolute inset-x-0 top-0 h-0.5 bg-muted" aria-hidden>

@@ -31,7 +31,7 @@ export function savedTrackToPlayerTrack(track: {
     title: track.name,
     artist: track.artists,
     album: track.album,
-    artwork: track.albumImage ?? "/logo/logo-icon.png",
+    artwork: track.albumImage ?? "/logo/logo-icon-brand.png",
     durationMs: track.durationMs,
   };
 }
@@ -48,7 +48,7 @@ export function topTrackToPlayerTrack(track: {
     title: track.name,
     artist: track.artists.map((artist) => artist.name).join(", "),
     album: track.album.name,
-    artwork: track.album.images?.[0]?.url ?? "/logo/logo-icon.png",
+    artwork: track.album.images?.[0]?.url ?? "/logo/logo-icon-brand.png",
     durationMs: track.duration_ms,
   };
 }

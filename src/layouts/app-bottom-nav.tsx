@@ -16,21 +16,17 @@ export function AppBottomNav() {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-3 text-xs",
-                isActive
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground",
+                "flex h-14 items-center justify-center px-1 text-center font-action text-xs font-bold leading-tight tracking-wide",
+                isActive ? "text-primary" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-5" />
-              <span>{item.label}</span>
+              {item.label}
             </Link>
           );
         })}

@@ -7,7 +7,7 @@ interface ConnectSpotifyCardProps {
 export function ConnectSpotifyCard({ className }: ConnectSpotifyCardProps) {
   return (
     <section className={cn("min-w-0 border-b border-border pb-6", className)}>
-      <h2 className="text-sm font-medium">Connect Spotify</h2>
+      <h2 className="font-display text-2xl font-bold tracking-wide">Connect Spotify</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Link your Spotify account to see your top tracks, artists, recently
         played songs, and playlists.

@@ -33,20 +33,18 @@ export function AppSidebar() {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 border-l-2 py-2 pl-2.5 pr-1.5 text-sm transition-colors",
+                "border-l-2 py-2.5 pl-3 pr-2 font-action text-base font-bold tracking-wide transition-colors",
                 isActive
-                  ? "border-foreground font-medium text-foreground"
+                  ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="size-4 shrink-0 opacity-70" />
               {item.label}
             </Link>
           );
