@@ -11,9 +11,11 @@ import { getValidSpotifyAccessToken } from "@/features/spotify/services/spotify-
 import type { SpotifyTimeRange } from "@/shared/constants/spotify";
 import { prisma } from "@/shared/lib/prisma";
 import {
+  formatRateLimitMessage,
   getSpotifyErrorMessage,
   isSpotifyRateLimitError,
   isSpotifyScopeError,
+  SpotifyRateLimitError,
   SPOTIFY_SYNC_REQUEST_OPTIONS,
 } from "@/shared/lib/spotify-http";
 import { spotifyApiMetrics } from "@/shared/lib/spotify-api-metrics";
@@ -212,9 +214,7 @@ async function runSyncStep<T>(
     return await task();
   } catch (error) {
     if (isSpotifyRateLimitError(error)) {
-      errors.push(
-        `${label}: Spotify rate limit reached. Wait a minute, then save again to finish.`,
-      );
+      errors.push(`${label}: ${getSpotifyErrorMessage(error)}`);
       throw new SyncRateLimitedError();
     }
 
@@ -249,6 +249,17 @@ async function finalizeLibrarySync(params: {
   } = params;
 
   if (cachesWritten === 0) {
+    const rateLimitError = errors.find((error) =>
+      error.toLowerCase().includes("rate limit"),
+    );
+
+    if (rateLimitError) {
+      throw new SpotifyRateLimitError(
+        spotifyApiMetrics.getRateLimitRemainingMs() ?? 60_000,
+        rateLimitError.replace(/^[^:]+:\s*/, ""),
+      );
+    }
+
     throw new Error(
       errors[0] ??
         "Library sync failed before saving any data. Wait a few minutes if rate limited, then try again.",
@@ -292,9 +303,8 @@ export async function syncSpotifyLibraryForUser(
   }
 
   if (spotifyApiMetrics.isRateLimited()) {
-    throw new Error(
-      "Spotify rate limit is active. Wait about a minute, then try Save from Spotify once.",
-    );
+    const remainingMs = spotifyApiMetrics.getRateLimitRemainingMs() ?? 60_000;
+    throw new Error(formatRateLimitMessage(remainingMs));
   }
 
   const errors: string[] = [];

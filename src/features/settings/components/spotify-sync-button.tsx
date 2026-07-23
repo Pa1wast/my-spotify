@@ -26,7 +26,10 @@ export function SpotifySyncButton({
       return;
     }
 
-    const timer = window.setTimeout(() => setMessage(null), 6000);
+    const timer = window.setTimeout(
+      () => setMessage(null),
+      message.toLowerCase().includes("rate limit") ? 20_000 : 8_000,
+    );
     return () => window.clearTimeout(timer);
   }, [message]);
 
@@ -44,8 +47,17 @@ export function SpotifySyncButton({
           const needsReconnect = result.errors.some((error) =>
             error.toLowerCase().includes("reconnect"),
           );
+          const rateLimited = result.errors.some((error) =>
+            error.toLowerCase().includes("rate limit"),
+          );
           setMessage(
-            `Saved partially (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays. ${result.errors[0] ?? "Some sections failed."}${needsReconnect ? " Use Reconnect Spotify, then save again." : " Wait a minute if rate limited, then save again."}`,
+            `Saved partially (${result.cachesWritten} sections): ${result.savedTracks} liked tracks, ${result.playlists} playlists, ${result.playEventsInserted} new plays. ${result.errors[0] ?? "Some sections failed."}${
+              needsReconnect
+                ? " Use Reconnect Spotify, then save again."
+                : rateLimited
+                  ? " Watch the API usage countdown, then save once more."
+                  : " Try save again shortly."
+            }`,
           );
           return;
         }

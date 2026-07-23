@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import type { SpotifyApiMetricsSnapshot } from "@/shared/lib/spotify-api-metrics";
 
 interface SpotifyApiMetricsDisplayProps {
@@ -8,19 +10,47 @@ interface SpotifyApiMetricsDisplayProps {
   compact?: boolean;
 }
 
-function formatRateLimitUntil(isoDate: string | null) {
-  if (!isoDate) {
-    return null;
+function formatCountdown(remainingMs: number) {
+  const totalSeconds = Math.max(1, Math.ceil(remainingMs / 1000));
+
+  if (totalSeconds < 60) {
+    return `${totalSeconds}s`;
   }
 
-  const remainingMs = new Date(isoDate).getTime() - Date.now();
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+}
 
-  if (remainingMs <= 0) {
-    return null;
-  }
+function useLiveCountdown(rateLimitedUntil: string | null) {
+  const [remainingMs, setRemainingMs] = useState<number | null>(() => {
+    if (!rateLimitedUntil) {
+      return null;
+    }
 
-  const seconds = Math.ceil(remainingMs / 1000);
-  return `${seconds}s`;
+    return Math.max(0, new Date(rateLimitedUntil).getTime() - Date.now());
+  });
+
+  useEffect(() => {
+    if (!rateLimitedUntil) {
+      setRemainingMs(null);
+      return;
+    }
+
+    function tick() {
+      const next = Math.max(
+        0,
+        new Date(rateLimitedUntil!).getTime() - Date.now(),
+      );
+      setRemainingMs(next > 0 ? next : null);
+    }
+
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [rateLimitedUntil]);
+
+  return remainingMs;
 }
 
 export function SpotifyApiMetricsDisplay({
@@ -28,6 +58,8 @@ export function SpotifyApiMetricsDisplay({
   isLoading = false,
   compact = false,
 }: SpotifyApiMetricsDisplayProps) {
+  const remainingMs = useLiveCountdown(metrics?.rateLimitedUntil ?? null);
+
   if (isLoading && !metrics) {
     return (
       <p className="text-xs text-muted-foreground">Loading API usage…</p>
@@ -38,7 +70,8 @@ export function SpotifyApiMetricsDisplay({
     return null;
   }
 
-  const rateLimitCountdown = formatRateLimitUntil(metrics.rateLimitedUntil);
+  const rateLimitCountdown =
+    remainingMs !== null ? formatCountdown(remainingMs) : null;
 
   if (compact) {
     return (
@@ -80,12 +113,14 @@ export function SpotifyApiMetricsDisplay({
       </div>
       {rateLimitCountdown ? (
         <p className="text-destructive">
-          Rate limited — retry in {rateLimitCountdown}
+          Rate limited — wait {rateLimitCountdown}, then Save once. Do not
+          spam Save; that resets Spotify’s limit.
         </p>
       ) : null}
       <p className="text-xs text-muted-foreground">
-        Spotify does not publish exact quotas. Remaining is estimated from a
-        rolling 30-second window.
+        Spotify does not publish exact quotas. The 30s counter is only an
+        estimate — a real 429 uses Spotify’s Retry-After cooldown (at least 1
+        minute).
       </p>
     </div>
   );

@@ -36,7 +36,7 @@ export function useSpotifyApiMetrics() {
     queryKey: ["spotify-api-metrics"],
     queryFn: fetchSpotifyApiMetrics,
     refetchInterval: (query) =>
-      query.state.data?.rateLimitedUntil ? 5_000 : 30_000,
+      query.state.data?.rateLimitedUntil ? 1_000 : 30_000,
   });
 }
 

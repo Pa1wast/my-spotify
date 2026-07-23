@@ -5,7 +5,11 @@ import { syncSpotifyLibraryForUser } from "@/features/library/services/library-s
 import { getUserByAuth0Sub } from "@/features/spotify/services/spotify-user.service";
 import { auth0 } from "@/shared/lib/auth0";
 import { spotifyApiMetrics } from "@/shared/lib/spotify-api-metrics";
-import { getSpotifyErrorMessage } from "@/shared/lib/spotify-http";
+import {
+  formatRateLimitMessage,
+  getSpotifyErrorMessage,
+  isSpotifyRateLimitError,
+} from "@/shared/lib/spotify-http";
 
 function verifyCronSecret(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -39,11 +43,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  if (spotifyApiMetrics.isRateLimited()) {
+  const remainingMs = spotifyApiMetrics.getRateLimitRemainingMs();
+
+  if (remainingMs !== null) {
     return NextResponse.json(
       {
-        message:
-          "Spotify rate limit is active. Wait about a minute, then try Save from Spotify once.",
+        message: formatRateLimitMessage(remainingMs),
         metrics: spotifyApiMetrics.getSnapshot(),
       },
       { status: 429 },
@@ -58,12 +63,14 @@ export async function POST(request: NextRequest) {
       metrics: spotifyApiMetrics.getSnapshot(),
     });
   } catch (error) {
+    const status = isSpotifyRateLimitError(error) ? 429 : 500;
+
     return NextResponse.json(
       {
         message: getSpotifyErrorMessage(error),
         metrics: spotifyApiMetrics.getSnapshot(),
       },
-      { status: 500 },
+      { status },
     );
   }
 }

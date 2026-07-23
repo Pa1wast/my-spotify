@@ -7,6 +7,7 @@ export interface SpotifyApiMetricsSnapshot {
   estimatedLimit: number;
   totalRequests: number;
   rateLimitedUntil: string | null;
+  rateLimitRemainingMs: number | null;
   lastRequestAt: string | null;
 }
 
@@ -22,21 +23,37 @@ class SpotifyApiMetricsTracker {
     this.prune(now);
   }
 
+  /** Extends cooldown if the new wait is longer; never shortens an active one. */
   recordRateLimit(retryAfterMs: number) {
-    this.rateLimitedUntil = Date.now() + retryAfterMs;
+    const until = Date.now() + Math.max(0, retryAfterMs);
+
+    if (this.rateLimitedUntil === null || until > this.rateLimitedUntil) {
+      this.rateLimitedUntil = until;
+    }
   }
 
   isRateLimited() {
     const now = Date.now();
-    return (
-      this.rateLimitedUntil !== null && this.rateLimitedUntil > now
-    );
+    this.prune(now);
+    return this.rateLimitedUntil !== null && this.rateLimitedUntil > now;
+  }
+
+  getRateLimitRemainingMs() {
+    const now = Date.now();
+    this.prune(now);
+
+    if (this.rateLimitedUntil === null || this.rateLimitedUntil <= now) {
+      return null;
+    }
+
+    return this.rateLimitedUntil - now;
   }
 
   getSnapshot(): SpotifyApiMetricsSnapshot {
     const now = Date.now();
     this.prune(now);
     const requestsInWindow = this.timestamps.length;
+    const remainingMs = this.getRateLimitRemainingMs();
 
     return {
       requestsInWindow,
@@ -47,9 +64,10 @@ class SpotifyApiMetricsTracker {
       estimatedLimit: SPOTIFY_ESTIMATED_REQUEST_LIMIT,
       totalRequests: this.totalRequests,
       rateLimitedUntil:
-        this.rateLimitedUntil && this.rateLimitedUntil > now
+        remainingMs !== null && this.rateLimitedUntil
           ? new Date(this.rateLimitedUntil).toISOString()
           : null,
+      rateLimitRemainingMs: remainingMs,
       lastRequestAt: this.timestamps.at(-1)
         ? new Date(this.timestamps.at(-1)!).toISOString()
         : null,
